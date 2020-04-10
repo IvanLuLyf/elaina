@@ -1,6 +1,6 @@
 (function ($) {
     'use strict';
-    var NAME = 'pageView';
+    var NAME = 'Eira';
     var dataStorage = {};
     var events = {};
     var widgets = {};
@@ -303,12 +303,12 @@
         if (typeof callback === 'function') events[evtName] = callback;
     }
 
-    function PageView() {
+    function Eira() {
 
     }
 
-    PageView.prototype = {
-        constructor: PageView,
+    Eira.prototype = {
+        constructor: Eira,
         data: function () {
             return data.apply(this, arguments);
         },
@@ -340,10 +340,10 @@
     };
 
     $.fn.extend({
-        pageView: function (options) {
+        Eira: function (options) {
             configure($.extend({el: $(this)}, options));
             return this;
         }
     });
-    $.pageView = new PageView();
+    $[NAME] = new Eira();
 })(jQuery);
