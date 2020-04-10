@@ -3,8 +3,10 @@
     var NAME = 'pageView';
     var dataStorage = {};
     var events = {};
+    var widgets = {};
     var prevPath = '';
-    var pages, appDiv, isDebug, pageVer, cacheExpireTime;
+    var appDiv, isDebug, pageVer, cacheExpireTime;
+    var pageDir, widgetDir;
 
     function data() {
         if (arguments.length === 0) {
@@ -49,7 +51,7 @@
     }
 
     function pageCache(view, html) {
-        var pk = view + '@' + pages;
+        var pk = view + '@' + pageDir;
         if (typeof html === "undefined") {
             var c = storage(pk);
             if (c.v === pageVer && c.expire > (new Date().getTime())) {
@@ -66,28 +68,37 @@
         }
     }
 
-    function replaceContent($el, $pageData, $template) {
+    function replaceContent(isPage, $el, $pageData, $template) {
+        if (typeof events['unload'] === "function") {
+            events['unload']();
+            delete events['unload'];
+        }
+        if (events['load']) delete events['load'];
         $template = $template || $pageData.find('template');
-        var title = $pageData.find('title');
-        if (title.length > 0) document.title = title.text();
         $el.html($template.html());
+        $el.prepend($pageData.find('style'));
+        $el.append($pageData.find('script'));
+        if (isPage) {
+            var title = $pageData.find('title');
+            if (title.length > 0) document.title = title.text();
+            if (typeof events['load'] === 'function') events['load']();
+        }
     }
 
-    function replaceBlock(el, view, conf) {
+    function replaceBlock(el, view, isPage) {
         var $el = $(el);
-        conf = conf || {};
         if (view[view.length - 1] === '/') {
             view = view + 'index'
         }
         if (!isDebug) {
             var cacheHeml = pageCache(view);
             if (cacheHeml) {
-                replaceContent($el, $('<div>' + cacheHeml + '</div>'));
+                replaceContent(isPage, $el, $('<div>' + cacheHeml + '</div>'));
                 return;
             }
         }
         $.ajax({
-            url: pages + view + '.html',
+            url: pageDir + view + '.html',
             type: 'get',
             dataType: 'html',
             success: function (html) {
@@ -95,7 +106,7 @@
                 var template = pageData.find('template');
                 if (template.length > 0) {
                     pageCache(view, html);
-                    replaceContent($el, pageData, template);
+                    replaceContent(isPage, $el, pageData, template);
                 } else {
                     $el.html('<h1>404 Not Found</h1>');
                 }
@@ -109,15 +120,95 @@
     function renderPage() {
         var pageInfo = parseRouter(window.location.hash.substring(1));
         if (pageInfo.path === prevPath) {
-
+            if (typeof events['change'] === 'function') events['change'](pageInfo);
         } else {
-            replaceBlock(appDiv, pageInfo.path);
+            prevPath = pageInfo.path;
+            delete events['change'];
+            replaceBlock(appDiv, pageInfo.path, true);
+        }
+    }
+
+    function defineWidget(name, initializer) {
+        widgets[name].initializer = initializer;
+    }
+
+    function prepareWidget(name, $widgetData, $template) {
+        if (!widgets[name]) {
+            widgets[name] = {};
+        }
+        $template = $template || $widgetData.find('template');
+        widgets[name].html = $template.html();
+        $(document.body).prepend($widgetData.find('style').attr('widget-style', name));
+        $(document.body).append($widgetData.find('script').attr('widget-script', name));
+    }
+
+    function loadOneWidget(name, callback) {
+        var widgetPath = widgetDir + '/' + name.split('.').join('/') + ".html";
+        var cacheHtml = pageCache(widgetPath);
+        if (cacheHtml) {
+            prepareWidget(name, $('<div>' + cacheHtml + '</div>'));
+            if (typeof callback === 'function') callback();
+            return;
+        }
+        $.ajax({
+            url: widgetPath,
+            type: 'get',
+            dataType: 'html',
+            success: function (html) {
+                var pageData = $('<div>' + html + '</div>');
+                var template = pageData.find('template');
+                if (template.length > 0) {
+                    pageCache(widgetPath, html);
+                    prepareWidget(name, pageData, template);
+                    if (typeof callback === 'function') callback();
+                }
+            }, error: function (err) {
+                console.log(err);
+            }
+        })
+    }
+
+    function loadWidget(name, callback) {
+        if ($.isArray(name)) {
+            var i = 0;
+            var cb = function () {
+                i++;
+                if (i < name.length && typeof name[i] !== "undefined") {
+                    loadOneWidget(name[i], cb);
+                } else {
+                    if (typeof callback === 'function') callback();
+                }
+            };
+            loadOneWidget(name[i], cb);
+        } else {
+            loadOneWidget(name, callback);
+        }
+    }
+
+    function widget(el, name, param) {
+        var $el = $(el);
+        if (typeof name === "undefined" && typeof param === "undefined") {
+            return $el.data('pageWidget');
+        }
+        if (widgets[name]) {
+            var Initializer = widgets[name].initializer;
+            $el.html(widgets[name].html);
+            if (typeof Initializer === 'function') {
+                var handler = new Initializer($el, param);
+                $el.data('pageWidget', handler);
+                $el.attr('widget', name);
+                if (typeof handler['created'] === "function") {
+                    handler['created']();
+                }
+                return handler;
+            }
         }
     }
 
     function configure(options) {
         options = options || {};
-        pages = options.pages;
+        pageDir = options.pages || 'page';
+        widgetDir = options.widgets || (pageDir + '/widget');
         appDiv = options.el;
         isDebug = options.debug;
         pageVer = options.version;
@@ -130,6 +221,10 @@
         $(window).on('hashchange', function (e) {
             renderPage();
         });
+    }
+
+    function bindEvent(evtName, callback) {
+        if (typeof callback === 'function') events[evtName] = callback;
     }
 
     function PageView() {
@@ -151,6 +246,22 @@
     PageView.prototype.navigate = function (path, search, hash) {
         var q = $.param(search || {});
         window.location.hash = '#' + (path ? path : '') + (q ? ('?' + q) : '') + (hash ? ('#' + hash) : '');
+    };
+
+    PageView.prototype.on = function (evtName, callback) {
+        bindEvent(evtName, callback);
+    };
+
+    PageView.prototype.defineWidget = function (name, init) {
+        defineWidget(name, init);
+    };
+
+    PageView.prototype.loadWidget = function (name, callback) {
+        loadWidget(name, callback);
+    };
+
+    PageView.prototype.widget = function (el, name, param) {
+        return widget(el, name, (param || {}));
     };
 
     $.fn.extend({
