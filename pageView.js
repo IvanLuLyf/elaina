@@ -6,7 +6,7 @@
     var widgets = {};
     var prevPath = '';
     var appDiv, isDebug, pageVer, cacheExpireTime;
-    var pageDir, widgetDir;
+    var pageDir, widgetDir, scopeDir;
 
     function data() {
         if (arguments.length === 0) {
@@ -51,7 +51,7 @@
     }
 
     function pageCache(view, html) {
-        var pk = view + '@' + pageDir;
+        var pk = scopeDir + '#' + view + '@' + pageDir;
         if (typeof html === "undefined") {
             var c = storage(pk);
             if (c.v === pageVer && c.expire > (new Date().getTime())) {
@@ -284,6 +284,7 @@
         options = options || {};
         pageDir = options.pages || 'page';
         widgetDir = options.widgets || (pageDir + '/widget');
+        scopeDir = options.scope || ('/');
         appDiv = options.el;
         isDebug = options.debug;
         pageVer = options.version;
