@@ -307,41 +307,36 @@
 
     }
 
-    PageView.prototype.data = function () {
-        return data.apply(this, arguments);
-    };
-
-    PageView.prototype.storage = function () {
-        return storage.apply(this, arguments);
-    };
-
-    PageView.prototype.router = function () {
-        return parseRouter(window.location.hash.substring(1));
-    };
-
-    PageView.prototype.navigate = function (path, search, hash) {
-        var q = $.param(search || {});
-        window.location.hash = '#' + (path ? path : '') + (q ? ('?' + q) : '') + (hash ? ('#' + hash) : '');
-    };
-
-    PageView.prototype.on = function (evtName, callback) {
-        bindEvent(evtName, callback);
-    };
-
-    PageView.prototype.defineWidget = function (name, init) {
-        defineWidget(name, init);
-    };
-
-    PageView.prototype.extendWidget = function (name, superClass, init) {
-        extendWidget(name, superClass, init);
-    };
-
-    PageView.prototype.loadWidget = function (name, callback) {
-        loadWidget(name, callback);
-    };
-
-    PageView.prototype.widget = function (el, name, param) {
-        return widget(el, name, (param || {}));
+    PageView.prototype = {
+        constructor: PageView,
+        data: function () {
+            return data.apply(this, arguments);
+        },
+        storage: function () {
+            return storage.apply(this, arguments);
+        },
+        router: function () {
+            return parseRouter(window.location.hash.substring(1));
+        },
+        navigate: function (path, search, hash) {
+            var q = $.param(search || {});
+            window.location.hash = '#' + (path ? path : '') + (q ? ('?' + q) : '') + (hash ? ('#' + hash) : '');
+        },
+        on: function (evtName, callback) {
+            bindEvent(evtName, callback);
+        },
+        defineWidget: function (name, init) {
+            defineWidget(name, init);
+        },
+        extendWidget: function (name, superClass, init) {
+            extendWidget(name, superClass, init);
+        },
+        loadWidget: function (name, callback) {
+            loadWidget(name, callback);
+        },
+        widget: function (el, name, param) {
+            return widget(el, name, (param || {}));
+        },
     };
 
     $.fn.extend({
