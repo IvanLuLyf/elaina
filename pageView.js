@@ -132,6 +132,13 @@
         widgets[name].initializer = initializer;
     }
 
+    function extendWidget(name, superClass, initializer) {
+        widgets[name].initializer = widgets[superClass].initializer.extend(initializer);
+        if (widgets[name].html.trim() === '') {
+            widgets[name].html = widgets[superClass].html;
+        }
+    }
+
     function prepareWidget(name, $widgetData, $template) {
         if (!widgets[name]) {
             widgets[name] = {};
@@ -192,7 +199,16 @@
         }
         if (widgets[name]) {
             var Initializer = widgets[name].initializer;
+            if (!$el.attr("widget")) {
+                $el.data('origin', $el.html());
+            } else {
+                disposeWidget($el);
+            }
             $el.html(widgets[name].html);
+            var $slot = $el.find('slot');
+            if ($slot.length === 1) {
+                $slot.replaceWith($el.data('origin'));
+            }
             if (typeof Initializer === 'function') {
                 var handler = new Initializer($el, param);
                 $el.data('pageWidget', handler);
@@ -204,6 +220,65 @@
             }
         }
     }
+
+    function disposeWidget(el) {
+        var $el = $(el);
+        var oldHandler = $el.data('pageWidget');
+        if (oldHandler) {
+            if (typeof oldHandler.unload === "function") {
+                oldHandler.unload();
+            }
+            oldHandler = undefined;
+            $el.removeData('pageWidget');
+            $el.removeAttr('widget');
+            $el.find('[widget]').each(function () {
+                disposeWidget($(this));
+            });
+        }
+        $el.empty();
+        $el.html($el.data('origin'));
+    }
+
+
+    var initializing = false;
+
+    window.Widget = function () {
+    };
+
+    Widget.extend = function widgetExtends(props) {
+        var _super = this.prototype;
+        initializing = true;
+        var prototype = new this();
+        initializing = false;
+        for (var name in props) {
+            if (props.hasOwnProperty(name)) {
+                if (typeof props[name] === "function" && typeof _super[name] === "function" && /\$\bsuper\b/.test(props[name])) {
+                    prototype[name] = (function (name, fn) {
+                        return function () {
+                            var tmp = this.$super;
+                            this.$super = _super[name];
+                            var ret = fn.apply(this, arguments);
+                            this.$super = tmp;
+                            return ret;
+                        }
+                    })(name, props[name])
+                } else {
+                    prototype[name] = props[name];
+                }
+            }
+        }
+
+        function Class($elem) {
+            if (!initializing && this.init) {
+                this.init.apply(this, arguments);
+            }
+        }
+
+        Class.prototype = prototype;
+        Class.constructor = Class;
+        Class.extend = widgetExtends;
+        return Class;
+    };
 
     function configure(options) {
         options = options || {};
@@ -254,6 +329,10 @@
 
     PageView.prototype.defineWidget = function (name, init) {
         defineWidget(name, init);
+    };
+
+    PageView.prototype.extendWidget = function (name, superClass, init) {
+        extendWidget(name, superClass, init);
     };
 
     PageView.prototype.loadWidget = function (name, callback) {
