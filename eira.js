@@ -12,7 +12,11 @@
         if (arguments.length === 0) {
             return dataStorage;
         } else if (arguments.length === 1) {
-            return dataStorage[arguments[0]];
+            if (typeof arguments[0] === 'object') {
+                $.extend(dataStorage, arguments[0]);
+            } else {
+                return dataStorage[arguments[0]];
+            }
         } else {
             dataStorage[arguments[0]] = arguments[1];
         }
@@ -20,7 +24,7 @@
 
     function storage(key, data) {
         if (!key) return;
-        var realKey = NAME + '$' + key;
+        var realKey = NAME + '@' + scopeDir + '$' + key;
         if (data === null) return delete localStorage[realKey];
         if (typeof data === "undefined") {
             try {
@@ -51,7 +55,7 @@
     }
 
     function pageCache(view, html) {
-        var pk = scopeDir + '#' + view + '@' + pageDir;
+        var pk = 'cache#' + view + '@' + pageDir;
         if (typeof html === "undefined") {
             var c = storage(pk);
             if (c.v === pageVer && c.expire > (new Date().getTime())) {
@@ -345,5 +349,5 @@
             return this;
         }
     });
-    $[NAME] = new Eira();
+    $.Eira = new Eira();
 })(jQuery);
