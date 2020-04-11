@@ -98,7 +98,7 @@
             }
         }
         $.ajax({
-            url: pageDir + view + '.html',
+            url: pageDir + view + '.html' + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
             dataType: 'html',
             success: function (html) {
@@ -158,7 +158,7 @@
             return;
         }
         $.ajax({
-            url: widgetPath,
+            url: widgetPath + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
             dataType: 'html',
             success: function (html) {
