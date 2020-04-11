@@ -329,6 +329,9 @@
         on: function (evtName, callback) {
             bindEvent(evtName, callback);
         },
+        render: function (el, view) {
+            replaceBlock(el, view);
+        },
         defineWidget: function (name, init) {
             defineWidget(name, init);
         },
