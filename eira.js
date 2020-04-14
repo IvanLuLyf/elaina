@@ -81,7 +81,7 @@
         });
     }
 
-    function replaceContent(isPage, $el, $pageData, $template) {
+    function replaceContent($el, isPage, callback, $pageData, $template) {
         if (isPage) {
             if (typeof events['unload'] === "function") {
                 events['unload']();
@@ -105,20 +105,16 @@
             loadWidget(widgetList, function () {
                 $el.append($script);
                 autoWidget($el);
-                if (isPage) {
-                    if (typeof events['load'] === 'function') events['load']();
-                }
+                if (typeof callback === 'function') callback();
             });
         } else {
             $el.append($script);
             autoWidget($el);
-            if (isPage) {
-                if (typeof events['load'] === 'function') events['load']();
-            }
+            if (typeof callback === 'function') callback();
         }
     }
 
-    function replaceBlock(el, view, isPage) {
+    function replaceBlock(el, view, isPage, callback) {
         var $el = $(el);
         if (view[view.length - 1] === '/') {
             view = view + 'index'
@@ -126,7 +122,7 @@
         if (!isDebug) {
             var cacheHeml = pageCache(view);
             if (cacheHeml) {
-                replaceContent(isPage, $el, $('<div>' + cacheHeml + '</div>'));
+                replaceContent($el, isPage, callback, $('<div>' + cacheHeml + '</div>'));
                 return;
             }
         }
@@ -139,7 +135,7 @@
                 var template = pageData.find('template');
                 if (template.length > 0) {
                     pageCache(view, html);
-                    replaceContent(isPage, $el, pageData, template);
+                    replaceContent($el, isPage, callback, pageData, template);
                 } else {
                     $el.html('<h1>404 Not Found</h1>');
                 }
@@ -157,7 +153,9 @@
         } else {
             prevPath = pageInfo.path;
             delete events['change'];
-            replaceBlock(appDiv, pageInfo.path, true);
+            replaceBlock(appDiv, pageInfo.path, true, function () {
+                if (typeof events['load'] === 'function') events['load']();
+            });
         }
     }
 
@@ -242,7 +240,7 @@
     function widget(el, name, param) {
         var $el = $(el);
         if (typeof name === "undefined" && typeof param === "undefined") {
-            return $el.data('pageWidget');
+            return $el.data('widgetHandler');
         }
         if (widgets[name]) {
             var Initializer = widgets[name].initializer;
@@ -258,7 +256,7 @@
             }
             if (typeof Initializer === 'function') {
                 var handler = new Initializer($el, param);
-                $el.data('pageWidget', handler);
+                $el.data('widgetHandler', handler);
                 $el.attr('widget', name);
                 if (typeof handler['created'] === "function") {
                     handler['created']();
@@ -270,13 +268,13 @@
 
     function disposeWidget(el) {
         var $el = $(el);
-        var oldHandler = $el.data('pageWidget');
+        var oldHandler = $el.data('widgetHandler');
         if (oldHandler) {
             if (typeof oldHandler.unload === "function") {
                 oldHandler.unload();
             }
             oldHandler = undefined;
-            $el.removeData('pageWidget');
+            $el.removeData('widgetHandler');
             $el.removeAttr('widget');
             $el.find('[widget]').each(function () {
                 disposeWidget($(this));
@@ -372,8 +370,8 @@
         on: function (evtName, callback) {
             bindEvent(evtName, callback);
         },
-        render: function (el, view) {
-            replaceBlock(el, view);
+        render: function (el, view, callback) {
+            replaceBlock(el, view, false, callback);
         },
         defineWidget: function (name, init) {
             defineWidget(name, init);
