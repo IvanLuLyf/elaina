@@ -7,6 +7,7 @@
     var prevPath = '';
     var appDiv, isDebug, pageVer, cacheExpireTime;
     var pageDir, widgetDir, scopeDir;
+    var page404;
 
     function data() {
         if (arguments.length === 0) {
@@ -96,10 +97,8 @@
         $el.empty().html($template.html());
         $el.prepend($pageData.find('style'));
         var $script = $pageData.find('script');
-        if (isPage) {
-            var title = $pageData.find('title');
-            if (title.length > 0) document.title = title.text();
-        }
+        var title = $pageData.find('title');
+        if (title.length > 0) document.title = title.text();
         if ($script.attr('use-widget')) {
             var widgetList = $script.attr('use-widget').split(',');
             loadWidget(widgetList, function () {
@@ -137,11 +136,25 @@
                     pageCache(view, html);
                     replaceContent($el, isPage, callback, pageData, template);
                 } else {
-                    $el.html('<h1>404 Not Found</h1>');
+                    if (isPage) {
+                        document.title = '404 Not Found';
+                    }
+                    if (page404) {
+                        $el.html(page404);
+                    } else {
+                        $el.html('<h1>404 Not Found</h1>');
+                    }
                 }
             },
             error: function (err) {
-                $el.html('<h1>404 Not Found</h1>')
+                if (isPage) {
+                    document.title = '404 Not Found';
+                }
+                if (page404) {
+                    $el.html(page404);
+                } else {
+                    $el.html('<h1>404 Not Found</h1>');
+                }
             }
         });
     }
@@ -334,6 +347,7 @@
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
+        page404 = options.page404;
 
         $(function () {
             renderPage();
