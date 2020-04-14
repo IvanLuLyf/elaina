@@ -55,6 +55,7 @@
     }
 
     function pageCache(view, html) {
+        if (isDebug) return;
         var pk = 'cache#' + view + '@' + pageDir;
         if (typeof html === "undefined") {
             var c = storage(pk);
@@ -72,20 +73,48 @@
         }
     }
 
+    function autoWidget($el) {
+        var $widgets = $el.find('[auto-widget]');
+        $widgets.each(function () {
+            var $w = $(this);
+            widget($w, $w.attr('auto-widget'), $w.data());
+        });
+    }
+
     function replaceContent(isPage, $el, $pageData, $template) {
-        if (typeof events['unload'] === "function") {
-            events['unload']();
-            delete events['unload'];
+        if (isPage) {
+            if (typeof events['unload'] === "function") {
+                events['unload']();
+                delete events['unload'];
+            }
+            if (events['load']) delete events['load'];
         }
-        if (events['load']) delete events['load'];
+        $el.find('[widget]').each(function () {
+            disposeWidget($(this));
+        });
         $template = $template || $pageData.find('template');
-        $el.html($template.html());
+        $el.empty().html($template.html());
         $el.prepend($pageData.find('style'));
-        $el.append($pageData.find('script'));
+        var $script = $pageData.find('script');
         if (isPage) {
             var title = $pageData.find('title');
             if (title.length > 0) document.title = title.text();
-            if (typeof events['load'] === 'function') events['load']();
+        }
+        if ($script.attr('use-widget')) {
+            var widgetList = $script.attr('use-widget').split(',');
+            loadWidget(widgetList, function () {
+                $el.append($script);
+                autoWidget($el);
+                if (isPage) {
+                    if (typeof events['load'] === 'function') events['load']();
+                }
+            });
+        } else {
+            $el.append($script);
+            autoWidget($el);
+            if (isPage) {
+                if (typeof events['load'] === 'function') events['load']();
+            }
         }
     }
 
@@ -150,10 +179,24 @@
         $template = $template || $widgetData.find('template');
         widgets[name].html = $template.html();
         $(document.body).prepend($widgetData.find('style').attr('widget-style', name));
-        $(document.body).append($widgetData.find('script').attr('widget-script', name));
+        var $script = $widgetData.find('script');
+        $script.attr('widget-script', name);
+        if ($script.attr('use-widget')) {
+            var widgetList = $script.attr('use-widget').split(',');
+            loadWidget(widgetList, function () {
+                $(document.body).append($script);
+            });
+        } else {
+            $(document.body).append($script);
+        }
     }
 
     function loadOneWidget(name, callback) {
+        name = name.trim();
+        if (!name || widgets[name]) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
         var widgetPath = widgetDir + '/' + name.split('.').join('/') + ".html";
         var cacheHtml = pageCache(widgetPath);
         if (cacheHtml) {
