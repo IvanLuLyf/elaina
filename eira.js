@@ -115,9 +115,8 @@
 
     function replaceBlock(el, view, isPage, callback) {
         var $el = $(el);
-        if (view[view.length - 1] === '/') {
-            view = view + 'index'
-        }
+        if (view[0] !== '/') view = '/' + view;
+        if (view[view.length - 1] === '/') view = view + 'index'
         if (!isDebug) {
             var cacheHeml = pageCache(view);
             if (cacheHeml) {
@@ -136,23 +135,19 @@
                     pageCache(view, html);
                     replaceContent($el, isPage, callback, pageData, template);
                 } else {
-                    if (isPage) {
-                        document.title = '404 Not Found';
-                    }
-                    if (page404) {
-                        $el.html(page404);
+                    if (page404 && view !== page404) {
+                        replaceBlock($el, page404, isPage);
                     } else {
+                        if (isPage) document.title = '404 Not Found';
                         $el.html('<h1>404 Not Found</h1>');
                     }
                 }
             },
             error: function (err) {
-                if (isPage) {
-                    document.title = '404 Not Found';
-                }
-                if (page404) {
-                    $el.html(page404);
+                if (page404 && view !== page404) {
+                    replaceBlock($el, page404, isPage);
                 } else {
+                    if (isPage) document.title = '404 Not Found';
                     $el.html('<h1>404 Not Found</h1>');
                 }
             }
@@ -347,7 +342,12 @@
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
-        page404 = options.page404;
+        if (options.page404) {
+            page404 = options.page404;
+            if (page404[0] !== '/') {
+                page404 = '/' + page404;
+            }
+        }
 
         $(function () {
             renderPage();
