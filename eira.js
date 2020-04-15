@@ -253,11 +253,17 @@
         if (widgets[name]) {
             var Initializer = widgets[name].initializer;
             if (!$el.attr("widget")) {
-                $el.data('origin', $el.html());
+                var $children = $el.children();
+                if ($children.length > 0) {
+                    $el.data('origin', $children);
+                } else {
+                    $el.data('origin', $el.html());
+                }
             } else {
                 disposeWidget($el);
             }
             $el.html(widgets[name].html);
+            autoWidget($el);
             var $slot = $el.find('slot');
             if ($slot.length === 1) {
                 $slot.replaceWith($el.data('origin'));
