@@ -74,11 +74,32 @@
         }
     }
 
+    function startWith(str, find) {
+        return str.substring(0, find.length) === find;
+    }
+
+    function getProp(el, $parent) {
+        var props = {};
+        var attrs = el.attributes;
+        for (var i = 0; i < attrs.length; i++) {
+            var n = attrs[i].nodeName;
+            if (startWith(n.toLowerCase(), 'prop-')) {
+                if ($parent) {
+                    props[n.substring(5)] = $parent.data(attrs[i].value);
+                } else {
+                    props[n.substring(5)] = attrs[i].value;
+                }
+            }
+        }
+        return props;
+    }
+
     function autoWidget($el) {
         var $widgets = $el.find('[auto-widget]');
         $widgets.each(function () {
             var $w = $(this);
-            widget($w, $w.attr('auto-widget'), $w.data());
+            var props = getProp($w[0], $el);
+            widget($w, $w.attr('auto-widget'), $.extend(props, $w.data()));
         });
     }
 
