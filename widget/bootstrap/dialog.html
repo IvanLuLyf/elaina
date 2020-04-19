@@ -1,0 +1,91 @@
+<template>
+    <div class="modal" page-id="dialog" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" page-id="title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+    (function () {
+        function Dialog($elem, conf) {
+            var that = this;
+            this._events = {};
+            this.$dialog = $elem.find('[page-id="dialog"]');
+            this.$header = $elem.find('.modal-header');
+            this.$title = $elem.find('[page-id="title"]');
+            if (conf.header) {
+                this.$title.text(conf.header.title || '');
+            } else {
+                this.$header.hide();
+            }
+            this.$body = $elem.find('.modal-body');
+            if (conf.body) {
+                this.$body.html(conf.body);
+            }
+            this.$footer = $elem.find('.modal-footer');
+            if (conf.ok !== undefined || conf.cancel !== undefined) {
+                if (conf.ok !== undefined) {
+                    var $btnOk = $('<button type="button" class="btn btn-primary">' + conf.ok + '</button>');
+                    $btnOk.click(function () {
+                        if (typeof that._events['ok'] === 'function') that._events['ok']();
+                    });
+                    this.$footer.append($btnOk);
+                }
+                if (conf.cancel !== undefined) {
+                    var $btnCancel = $('<button type="button" class="btn btn-secondary" data-dismiss="modal">' + conf.cancel + '</button>');
+                    $btnCancel.click(function () {
+                        if (typeof that._events['cancel'] === 'function') that._events['cancel']();
+                    });
+                    this.$footer.append($btnCancel);
+                }
+            } else {
+                this.$footer.hide();
+            }
+        }
+
+        Dialog.prototype.on = function (evtName, callback) {
+            if (typeof callback === 'function') this._events[evtName] = callback;
+        };
+
+        Dialog.prototype.title = function (v) {
+            if (typeof v === "undefined") {
+                return this.$title.text();
+            }
+            this.$header.show();
+            this.$title.text(v);
+            return this;
+        };
+
+        Dialog.prototype.body = function (v) {
+            if (typeof v === "undefined") {
+                return this.$body;
+            }
+            this.$body.html(v);
+            return this;
+        };
+
+        Dialog.prototype.show = function () {
+            this.$dialog.modal('show');
+        };
+
+        Dialog.prototype.hide = function () {
+            this.$dialog.modal('hide');
+            this.$dialog.hide();
+        };
+
+        $.Eira.defineWidget(Dialog);
+    })()
+</script>
