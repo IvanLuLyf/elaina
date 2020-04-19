@@ -188,6 +188,36 @@
         }
     }
 
+    function widgetInfo(name) {
+        name = name.trim();
+        if (!name) return null;
+        var reg = /(.*)\s+as\s+(.*)/;
+        var originName = name;
+        var widgetId;
+        var widgetPath;
+        var ws;
+        var c = reg.exec(name);
+        if (c) {
+            originName = c[1];
+            widgetId = c[2];
+        }
+        if (originName[0] === '@') {
+            ws = originName.substring(1).split('.');
+            if (!widgetId) widgetId = ws.pop();
+            widgetPath = 'https://eira.twimi.cn/widget/' + ws.join('/') + '/' + widgetId + '.html';
+        } else {
+            ws = originName.split('.');
+            if (!widgetId) widgetId = ws.pop();
+            widgetPath = widgetDir + '/' + ws.join('/') + '/' + widgetId + '.html';
+        }
+        return {
+            id: widgetId,
+            origin: originName,
+            key: 'widget$' + originName,
+            path: widgetPath,
+        }
+    }
+
     function defineWidget(name, initializer) {
         widgets[name].initializer = initializer;
     }
@@ -199,48 +229,55 @@
         }
     }
 
-    function prepareWidget(name, $widgetData, $template) {
-        if (!widgets[name]) {
-            widgets[name] = {};
+    function prepareWidget(widgetInfo, $widgetData, $template) {
+        if (!widgets[widgetInfo.origin]) {
+            widgets[widgetInfo.origin] = {};
         }
         $template = $template || $widgetData.find('template');
-        widgets[name].html = $template.html();
+        widgets[widgetInfo.origin].html = $template.html();
         $(document.body).prepend($widgetData.find('style').attr('widget-style', name));
         var $script = $widgetData.find('script');
+        $.Eira.defineWidget = function (initializer) {
+            defineWidget(widgetInfo.origin, initializer);
+        };
         $script.attr('widget-script', name);
         if ($script.attr('use-widget')) {
             var widgetList = $script.attr('use-widget').split(',');
             loadWidget(widgetList, function () {
                 $(document.body).append($script);
+                delete $.Eira.defineWidget;
             });
         } else {
             $(document.body).append($script);
+            delete $.Eira.defineWidget;
+        }
+        if (!widgets[widgetInfo.id]) {
+            widgets[widgetInfo.id] = widgets[widgetInfo.origin];
         }
     }
 
     function loadOneWidget(name, callback) {
-        name = name.trim();
-        if (!name || widgets[name]) {
+        var info = widgetInfo(name);
+        if (!info || widgets[info.origin]) {
             if (typeof callback === 'function') callback();
             return;
         }
-        var widgetPath = widgetDir + '/' + name.split('.').join('/') + ".html";
-        var cacheHtml = pageCache(widgetPath);
+        var cacheHtml = pageCache(info.key);
         if (cacheHtml) {
             prepareWidget(name, $('<div>' + cacheHtml + '</div>'));
             if (typeof callback === 'function') callback();
             return;
         }
         $.ajax({
-            url: widgetPath + (pageVer ? ('?v=' + pageVer) : ''),
+            url: info.path + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
             dataType: 'html',
             success: function (html) {
                 var pageData = $('<div>' + html + '</div>');
                 var template = pageData.find('template');
                 if (template.length > 0) {
-                    pageCache(widgetPath, html);
-                    prepareWidget(name, pageData, template);
+                    pageCache(info.key, html);
+                    prepareWidget(info, pageData, template);
                     if (typeof callback === 'function') callback();
                 }
             }, error: function (err) {
@@ -413,9 +450,6 @@
         },
         render: function (el, view, callback) {
             replaceBlock(el, view, false, callback);
-        },
-        defineWidget: function (name, init) {
-            defineWidget(name, init);
         },
         extendWidget: function (name, superClass, init) {
             extendWidget(name, superClass, init);
