@@ -123,13 +123,13 @@
         if ($script.attr('use-widget')) {
             var widgetList = $script.attr('use-widget').split(',');
             loadWidget(widgetList, function () {
-                $el.append($script);
                 autoWidget($el);
+                $el.append($script);
                 if (typeof callback === 'function') callback();
             });
         } else {
-            $el.append($script);
             autoWidget($el);
+            $el.append($script);
             if (typeof callback === 'function') callback();
         }
     }
