@@ -1,0 +1,62 @@
+<template>
+    <slot></slot>
+</template>
+<style>
+    .eira-badge {
+        box-sizing: border-box;
+        background-color: #6c7c96;
+        color: #fff;
+        display: inline-block;
+        padding: .25em .4em;
+        font-size: 75%;
+        font-weight: 600;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: .25rem;
+    }
+
+    .eira-badge.red {
+        background-color: #dc3545;
+    }
+
+    .eira-badge.pink {
+        background-color: #e83e8c;
+    }
+
+    .eira-badge.orange {
+        background-color: #fd7e14;
+    }
+
+    .eira-badge.yellow {
+        background-color: #ffc107;
+    }
+
+    .eira-badge.green {
+        background-color: #28a745;
+    }
+
+    .eira-badge.blue {
+        background-color: #409eff;
+    }
+
+    .eira-badge.purple {
+        background-color: #6f42c1;
+    }
+</style>
+<script>
+    (function () {
+        function Badge($elem, conf) {
+            $elem.addClass('eira-badge');
+            if (conf.text) {
+                $elem.text(conf.text);
+            }
+            if (conf.color) {
+                $elem.addClass(conf.color);
+            }
+        }
+
+        $.Eira.defineWidget(Badge);
+    })();
+</script>
