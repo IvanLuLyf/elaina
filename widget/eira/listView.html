@@ -1,0 +1,109 @@
+<template>
+    <div class="eira-list-view">
+        <slot></slot>
+    </div>
+</template>
+<script>
+    (function () {
+        function ListView($elem, conf) {
+            this.$container = $elem.find('.eira-list-view');
+            this.listItem = this.$container.html();
+            this.$container.empty();
+            this.emptyContent = conf.empty;
+            if (conf.listClass) {
+                this.$container.addClass(conf.listClass);
+            }
+            this.itemClass = conf.itemClass;
+            this.setList(conf.data);
+        }
+
+        ListView.prototype.createItem = function (item, front) {
+            if (!item) return;
+            var that = this;
+            var piece = $('<div></div>');
+            if (this.itemClass) piece.addClass(this.itemClass);
+            piece.html(this.listItem);
+            if (front) {
+                this.$container.prepend(piece);
+            } else {
+                this.$container.append(piece);
+            }
+            $.Eira.piece(piece, item);
+            var pieceHandler = {
+                remove: function () {
+                    that.remove(piece.index());
+                    piece = null;
+                },
+                update: function (newItem) {
+                    that.update(piece.index(), newItem);
+                }
+            };
+            piece.on('click', '[item-click]', function () {
+                var evtName = $(this).attr('item-click');
+                if (typeof that.events[evtName] === 'function') {
+                    that.events[evtName](item, piece.index(), pieceHandler);
+                }
+            });
+            piece.on('dblclick', '[item-dblclick]', function () {
+                var evtName = $(this).attr('item-dblclick');
+                if (typeof that.events[evtName] === 'function') {
+                    that.events[evtName](item, piece.index(), pieceHandler);
+                }
+            });
+        };
+
+        ListView.prototype.clear = function () {
+            this.dataList = [];
+            $.Eira.dispose(this.$container);
+            this.$container.empty().html(this.emptyContent);
+        };
+
+        ListView.prototype.setList = function (dataList) {
+            if (!$.isArray(dataList)) {
+                dataList = []
+            }
+            this.dataList = dataList;
+            $.Eira.dispose(this.$container);
+            this.$container.empty();
+            if (dataList.length === 0) {
+                this.$container.html(this.emptyContent);
+            }
+            for (var i = 0; i < dataList.length; i++) {
+                this.createItem(dataList[i]);
+            }
+        };
+
+        ListView.prototype.remove = function (index) {
+            if (this.dataList[index] !== undefined) {
+                this.dataList.splice(index, 1);
+                var piece = this.$container.children(":eq(" + index + ")");
+                $.Eira.dispose(piece);
+                piece.remove();
+                piece = null;
+            }
+            if (this.dataList.length === 0) {
+                this.$container.html(this.emptyContent);
+            }
+        };
+
+        ListView.prototype.append = function (item) {
+            if (!item) return;
+            if (this.dataList.length === 0) {
+                this.$container.empty();
+            }
+            this.dataList.push(item);
+            this.createItem(item);
+        };
+
+        ListView.prototype.prepend = function (item) {
+            if (!item) return;
+            if (this.dataList.length === 0) {
+                this.$container.empty();
+            }
+            this.dataList.unshift(item);
+            this.createItem(item, true);
+        };
+
+        $.Eira.defineWidget(ListView);
+    })();
+</script>
