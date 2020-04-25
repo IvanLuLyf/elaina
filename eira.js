@@ -78,14 +78,15 @@
         return str.substring(0, find.length) === find;
     }
 
-    function getProp(el, $parent) {
+    function getProp(el, $parent, extra) {
         var props = {};
+        extra = extra || {};
         var attrs = el.attributes;
         for (var i = 0; i < attrs.length; i++) {
             var n = attrs[i].nodeName;
             if (startWith(n.toLowerCase(), 'prop-')) {
                 if ($parent) {
-                    props[n.substring(5)] = $parent.data(attrs[i].value);
+                    props[n.substring(5)] = extra[attrs[i].value] || $parent.data(attrs[i].value);
                 } else {
                     props[n.substring(5)] = attrs[i].value;
                 }
@@ -99,8 +100,8 @@
         $widgets.each(function () {
             var $w = $(this);
             if ($w.closest($el).length > 0) {
-                var props = getProp($w[0], $el);
-                widget($w, $w.attr('auto-widget'), $.extend(props, $w.data(), extra));
+                var props = getProp($w[0], $el, extra);
+                widget($w, $w.attr('auto-widget'), $.extend(props, $w.data()));
             }
         });
     }
