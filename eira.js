@@ -94,12 +94,14 @@
         return props;
     }
 
-    function autoWidget($el) {
+    function autoWidget($el, extra) {
         var $widgets = $el.find('[auto-widget]');
         $widgets.each(function () {
             var $w = $(this);
-            var props = getProp($w[0], $el);
-            widget($w, $w.attr('auto-widget'), $.extend(props, $w.data()));
+            if ($w.closest($el).length > 0) {
+                var props = getProp($w[0], $el);
+                widget($w, $w.attr('auto-widget'), $.extend(props, $w.data(), extra));
+            }
         });
     }
 
@@ -114,11 +116,11 @@
         $el.find('[widget]').each(function () {
             disposeWidget($(this));
         });
-        $template = $template || $pageData.find('template');
+        $template = $template || $pageData.children('template');
         $el.empty().html($template.html());
-        $el.prepend($pageData.find('style'));
-        var $script = $pageData.find('script');
-        var title = $pageData.find('title');
+        $el.prepend($pageData.children('style'));
+        var $script = $pageData.children('script');
+        var title = $pageData.children('title');
         if (title.length > 0) document.title = title.text();
         if ($script.attr('use-widget')) {
             var widgetList = $script.attr('use-widget').split(',');
@@ -151,7 +153,7 @@
             dataType: 'html',
             success: function (html) {
                 var pageData = $('<div>' + html + '</div>');
-                var template = pageData.find('template');
+                var template = pageData.children('template');
                 if (template.length > 0) {
                     pageCache(view, html);
                     replaceContent($el, isPage, callback, pageData, template);
@@ -233,14 +235,14 @@
         if (!widgets[widgetInfo.origin]) {
             widgets[widgetInfo.origin] = {};
         }
-        $template = $template || $widgetData.find('template');
+        $template = $template || $widgetData.children('template');
         widgets[widgetInfo.origin].html = $template.html();
-        $(document.body).prepend($widgetData.find('style').attr('widget-style', name));
-        var $script = $widgetData.find('script');
+        $(document.body).prepend($widgetData.children('style').attr('widget-style', widgetInfo.origin));
+        var $script = $widgetData.children('script');
         $.Eira.defineWidget = function (initializer) {
             defineWidget(widgetInfo.origin, initializer);
         };
-        $script.attr('widget-script', name);
+        $script.attr('widget-script', widgetInfo.origin);
         if ($script.attr('use-widget')) {
             var widgetList = $script.attr('use-widget').split(',');
             loadWidget(widgetList, function () {
@@ -274,7 +276,7 @@
             dataType: 'html',
             success: function (html) {
                 var pageData = $('<div>' + html + '</div>');
-                var template = pageData.find('template');
+                var template = pageData.children('template');
                 if (template.length > 0) {
                     pageCache(info.key, html);
                     prepareWidget(info, pageData, template);
@@ -303,11 +305,20 @@
         }
     }
 
+    function piece(el, param) {
+        var $el = $(el);
+        $el.find('[widget]').each(function () {
+            disposeWidget($(this));
+        });
+        autoWidget($el, param);
+    }
+
     function widget(el, name, param) {
         var $el = $(el);
-        if (typeof name === "undefined" && typeof param === "undefined") {
+        if (typeof name === "undefined") {
             return $el.data('widgetHandler');
         }
+        param = param || {};
         if (widgets[name]) {
             var Initializer = widgets[name].initializer;
             if (!$el.attr("widget")) {
@@ -317,13 +328,12 @@
                 } else {
                     $el.data('origin', $el.html());
                 }
-            } else {
-                disposeWidget($el);
             }
+            disposeWidget($el);
             $el.html(widgets[name].html);
             autoWidget($el);
             var $slot = $el.find('slot');
-            if ($slot.length === 1) {
+            if ($slot.length > 0) {
                 $slot.replaceWith($el.data('origin'));
             }
             if (typeof Initializer === 'function') {
@@ -354,6 +364,15 @@
         }
         $el.empty();
         $el.html($el.data('origin'));
+    }
+
+    function dispose(el) {
+        var $el = $(el);
+        $el.find('[widget]').each(function () {
+            disposeWidget($(this));
+        });
+        disposeWidget(el);
+        $el = null;
     }
 
 
@@ -457,8 +476,14 @@
         loadWidget: function (name, callback) {
             loadWidget(name, callback);
         },
+        piece: function (el, param) {
+            piece(el, param);
+        },
         widget: function (el, name, param) {
-            return widget(el, name, (param || {}));
+            return widget(el, name, param);
+        },
+        dispose: function (el) {
+            dispose(el);
         },
     };
 
