@@ -1,6 +1,13 @@
-(function ($) {
+;(function (name, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], function () {
+            return factory(name, window.jQuery);
+        });
+    } else {
+        if (!window['$' + name]) factory(name, window.jQuery);
+    }
+})('Eira', function (NAME, $) {
     'use strict';
-    var NAME = 'Eira';
     var dataStorage = {};
     var events = {};
     var widgets = {};
@@ -494,5 +501,8 @@
             return this;
         }
     });
-    $.Eira = new Eira();
-})(jQuery);
+
+    var eira = new Eira();
+    $.Eira = eira;
+    return eira;
+});
