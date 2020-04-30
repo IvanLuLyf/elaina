@@ -27,18 +27,26 @@
         }
     }
 
-    function storage(key, data) {
+    function storageData(storage, key, data) {
         if (!key) return;
         var realKey = NAME + '@' + scopeDir + '$' + key;
-        if (data === null) return delete localStorage[realKey];
+        if (data === null) return delete storage[realKey];
         if (typeof data === "undefined") {
             try {
-                return JSON.parse(localStorage[realKey]);
+                return JSON.parse(storage[realKey]);
             } catch (e) {
                 return {};
             }
         }
-        if (typeof data === 'object') localStorage.setItem(realKey, JSON.stringify(data));
+        if (typeof data === 'object') storage.setItem(realKey, JSON.stringify(data));
+    }
+
+    function storage(key, data) {
+        storageData(localStorage, key, data);
+    }
+
+    function session(key, data) {
+        storageData(sessionStorage, key, data);
     }
 
     function parseRouter(hash) {
@@ -461,6 +469,9 @@
         },
         storage: function () {
             return storage.apply(this, arguments);
+        },
+        session: function () {
+            return session.apply(this, arguments);
         },
         router: function () {
             return parseRouter(window.location.hash.substring(1));
