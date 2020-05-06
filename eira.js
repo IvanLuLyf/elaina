@@ -49,6 +49,34 @@
         storageData(sessionStorage, key, data);
     }
 
+    function cookie(nameOrData, valueOrSecond, second) {
+        var exp = new Date(), defaultExpire = 2592000;
+        if (typeof nameOrData === 'object') {
+            exp.setTime(exp.getTime() + (valueOrSecond || defaultExpire) * 1000);
+            for (var k in nameOrData) if (nameOrData.hasOwnProperty(k)) document.cookie = k + "=" + escape(nameOrData[k]) + ";expires=" + exp.toUTCString() + ";path=/;";
+        } else if (typeof nameOrData === 'undefined') {
+            var allCookies = {}, cs, cArr = document.cookie.split(';');
+            for (var i = 0; i < cArr.length; i++) {
+                cs = cArr[i].split('=');
+                allCookies[$.trim(cs[0])] = escape($.trim(cs[1]));
+            }
+            return allCookies;
+        } else {
+            if (typeof valueOrSecond === 'undefined') {
+                var arr = document.cookie.match(new RegExp("(^| )" + nameOrData + "=([^;]*)(;|$)"));
+                return (arr !== null) ? unescape(arr[2]) : null;
+            } else {
+                if (valueOrSecond === null) {
+                    exp.setTime(exp.getTime() - 1);
+                    if (cookieData(nameOrData) !== null) document.cookie = nameOrData + "=;expires=" + exp.toUTCString() + ";path=/;";
+                } else {
+                    exp.setTime(exp.getTime() + (second || defaultExpire) * 1000);
+                    document.cookie = nameOrData + "=" + escape(valueOrSecond) + ";expires=" + exp.toUTCString() + ";path=/;";
+                }
+            }
+        }
+    }
+
     function parseRouter(hash) {
         var match = hash.match(/^([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
         var qs = match[2].substring(1);
@@ -472,6 +500,9 @@
         },
         session: function () {
             return session.apply(this, arguments);
+        },
+        cookie: function () {
+            return cookie.apply(this, arguments);
         },
         router: function () {
             return parseRouter(window.location.hash.substring(1));
