@@ -267,7 +267,7 @@
         }
         var cacheHtml = pageCache(info.key);
         if (cacheHtml) {
-            prepareWidget(name, $('<div>' + cacheHtml + '</div>'));
+            prepareWidget(info, $('<div>' + cacheHtml + '</div>'));
             if (typeof callback === 'function') callback();
             return;
         }
