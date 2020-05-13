@@ -118,6 +118,18 @@
         return str.substring(0, find.length) === find;
     }
 
+    function dashToCamel(text) {
+        if (!text) return text;
+        return text.replace(/-(\w)/g, function (all, letter) {
+            return letter.toUpperCase();
+        });
+    }
+
+    function camelToDash(text) {
+        if (!text) return text;
+        return text.replace(/([A-Z])/g, "-$1").toLowerCase();
+    }
+
     function getProp(el, $parent, extra) {
         var props = {};
         extra = extra || {};
@@ -125,11 +137,7 @@
         for (var i = 0; i < attrs.length; i++) {
             var n = attrs[i].nodeName;
             if (startWith(n.toLowerCase(), 'prop-')) {
-                if ($parent) {
-                    props[n.substring(5)] = extra[attrs[i].value] || $parent.data(attrs[i].value);
-                } else {
-                    props[n.substring(5)] = attrs[i].value;
-                }
+                props[dashToCamel(n.substring(5))] = $parent ? (extra[attrs[i].value] || $parent.data(attrs[i].value)) : attrs[i].value;
             }
         }
         return props;
