@@ -42,11 +42,11 @@
     }
 
     function storage(key, data) {
-        storageData(localStorage, key, data);
+        return storageData(localStorage, key, data);
     }
 
     function session(key, data) {
-        storageData(sessionStorage, key, data);
+        return storageData(sessionStorage, key, data);
     }
 
     function cookie(nameOrData, valueOrSecond, second) {
