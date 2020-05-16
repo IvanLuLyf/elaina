@@ -8,12 +8,16 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
+    var MOD_POSTFIX = {
+        'widget': '.html',
+        'trait': '.js',
+    };
+    var DIRS = {};
     var dataStorage = {};
     var events = {};
     var widgets = {};
     var prevPath = '';
     var appDiv, isDebug, pageVer, cacheExpireTime;
-    var pageDir, widgetDir, scopeDir;
     var page404;
 
     function data(keyOrData, value) {
@@ -29,7 +33,7 @@
 
     function storageData(storage, key, data) {
         if (!key) return;
-        var realKey = NAME + '@' + scopeDir + '$' + key;
+        var realKey = NAME + '@' + DIRS.scope + '$' + key;
         if (data === null) return delete storage[realKey];
         if (typeof data === "undefined") {
             try {
@@ -97,7 +101,7 @@
 
     function pageCache(view, html) {
         if (isDebug) return;
-        var pk = 'cache#' + view + '@' + pageDir;
+        var pk = 'cache#' + view + '@' + DIRS.page;
         if (typeof html === "undefined") {
             var c = storage(pk);
             if (c.v === pageVer && c.expire > (new Date().getTime())) {
@@ -188,7 +192,7 @@
     function replaceBlock(el, view, isPage, callback) {
         var $el = $(el);
         if (view[0] !== '/') view = '/' + view;
-        if (view[view.length - 1] === '/') view = view + 'index'
+        if (view[view.length - 1] === '/') view = view + 'index';
         if (!isDebug) {
             var cacheHeml = pageCache(view);
             if (cacheHeml) {
@@ -197,7 +201,7 @@
             }
         }
         $.ajax({
-            url: pageDir + view + '.html' + (pageVer ? ('?v=' + pageVer) : ''),
+            url: DIRS.page + view + '.html' + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
             dataType: 'html',
             success: function (html) {
@@ -239,33 +243,31 @@
         }
     }
 
-    function widgetInfo(name) {
-        name = name.trim();
+    function modInfo(name, modType) {
+        name = $.trim(name);
         if (!name) return null;
+        modType = modType || 'widget';
         var reg = /(.*)\s+as\s+(.*)/;
-        var originName = name;
-        var widgetId;
-        var widgetPath;
-        var ws;
-        var c = reg.exec(name);
+        var originName = name, modId, aliasId, modPath, idArr, c = reg.exec(name);
         if (c) {
             originName = c[1];
-            widgetId = c[2];
+            aliasId = c[2];
         }
         if (originName[0] === '@') {
-            ws = originName.substring(1).split('.');
-            if (!widgetId) widgetId = ws.pop();
-            widgetPath = 'https://eira.twimi.cn/widget/' + ws.join('/') + '/' + widgetId + '.html';
+            idArr = originName.substring(1).split('.');
+            modId = idArr.pop();
+            modPath = 'https://eira.twimi.cn/' + modType + '/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType];
         } else {
-            ws = originName.split('.');
-            if (!widgetId) widgetId = ws.pop();
-            widgetPath = widgetDir + '/' + ws.join('/') + '/' + widgetId + '.html';
+            idArr = originName.split('.');
+            modId = idArr.pop();
+            modPath = DIRS[modType] + '/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType];
         }
+        if (aliasId) modId = aliasId;
         return {
-            id: widgetId,
+            id: modId,
             origin: originName,
-            key: 'widget$' + originName,
-            path: widgetPath,
+            key: MOD_POSTFIX[modType] + '$' + originName,
+            path: modPath,
         }
     }
 
@@ -308,7 +310,7 @@
     }
 
     function loadOneWidget(name, callback) {
-        var info = widgetInfo(name);
+        var info = modInfo(name);
         if (!info || widgets[info.origin]) {
             if (typeof callback === 'function') callback();
             return;
@@ -467,9 +469,10 @@
 
     function configure(options) {
         options = options || {};
-        pageDir = options.pages || 'page';
-        widgetDir = options.widgets || (pageDir + '/widget');
-        scopeDir = options.scope || ('/');
+        DIRS.page = options.pages || 'page';
+        DIRS.widget = options.widgets || (DIRS.page + '/widget');
+        DIRS.trait = options.traits || (DIRS.page + '/trait');
+        DIRS.scope = options.scope || ('/');
         appDiv = options.el;
         isDebug = options.debug;
         pageVer = options.version;
