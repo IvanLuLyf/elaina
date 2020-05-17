@@ -290,7 +290,7 @@
         widgets[widgetInfo.origin].html = $template.html();
         $(document.body).prepend($widgetData.children('style').attr('widget-style', widgetInfo.origin));
         var $script = $widgetData.children('script');
-        $.Eira.defineWidget = function (initializer) {
+        eiraInstance.defineWidget = function (initializer) {
             defineWidget(widgetInfo.origin, initializer);
         };
         $script.attr('widget-script', widgetInfo.origin);
@@ -298,11 +298,11 @@
             var widgetList = $script.attr('use-widget').split(',');
             loadWidget(widgetList, function () {
                 $(document.body).append($script);
-                delete $.Eira.defineWidget;
+                delete eiraInstance.defineWidget;
             });
         } else {
             $(document.body).append($script);
-            delete $.Eira.defineWidget;
+            delete eiraInstance.defineWidget;
         }
         if (!widgets[widgetInfo.id]) {
             widgets[widgetInfo.id] = widgets[widgetInfo.origin];
@@ -552,7 +552,7 @@
         }
     });
 
-    var eira = new Eira();
-    $.Eira = eira;
-    return eira;
+    var eiraInstance = new Eira();
+    $.Eira = eiraInstance;
+    return eiraInstance;
 });
