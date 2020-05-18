@@ -175,18 +175,11 @@
         var $script = $pageData.children('script');
         var title = $pageData.children('title');
         if (title.length > 0) document.title = title.text();
-        if ($script.attr('use-widget')) {
-            var widgetList = $script.attr('use-widget').split(',');
-            loadWidget(widgetList, function () {
-                autoWidget($el);
-                $el.append($script);
-                if (typeof callback === 'function') callback();
-            });
-        } else {
+        loadWidget($script.attr('use-widget')).then(function () {
             autoWidget($el);
             $el.append($script);
             if (typeof callback === 'function') callback();
-        }
+        });
     }
 
     function replaceBlock(el, view, isPage, callback) {
@@ -295,8 +288,8 @@
         };
         $script.attr('widget-script', widgetInfo.origin);
         if ($script.attr('use-widget')) {
-            var widgetList = $script.attr('use-widget').split(',');
-            loadWidget(widgetList, function () {
+            var widgetList = $script.attr('use-widget');
+            loadWidget(widgetList).then(function () {
                 $(document.body).append($script);
                 delete eiraInstance.defineWidget;
             });
@@ -309,51 +302,43 @@
         }
     }
 
-    function loadOneWidget(name, callback) {
-        var info = modInfo(name);
-        if (!info || widgets[info.origin]) {
-            if (typeof callback === 'function') callback();
-            return;
-        }
-        var cacheHtml = pageCache(info.key);
-        if (cacheHtml) {
-            prepareWidget(info, $('<div>' + cacheHtml + '</div>'));
-            if (typeof callback === 'function') callback();
-            return;
-        }
+    function loadMod(info) {
+        var deferred = $.Deferred();
+        var cacheData = pageCache(info.key);
+        if (cacheData) return deferred.resolve({content: cacheData, cached: true}).promise();
         $.ajax({
             url: info.path + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
-            dataType: 'html',
-            success: function (html) {
-                var pageData = $('<div>' + html + '</div>');
-                var template = pageData.children('template');
-                if (template.length > 0) {
-                    pageCache(info.key, html);
-                    prepareWidget(info, pageData, template);
-                    if (typeof callback === 'function') callback();
-                }
-            }, error: function (err) {
-                console.log(err);
-            }
-        })
+            dataType: 'text',
+        }).then(function (content) {
+            deferred.resolve({
+                content: content,
+            });
+        }).fail(function (err) {
+            deferred.resolve({});
+        });
+        return deferred.promise();
     }
 
-    function loadWidget(name, callback) {
-        if ($.isArray(name)) {
-            var i = 0;
-            var cb = function () {
-                i++;
-                if (i < name.length && typeof name[i] !== "undefined") {
-                    loadOneWidget(name[i], cb);
-                } else {
-                    if (typeof callback === 'function') callback();
+    function loadWidget(widgetList) {
+        var req = [];
+        widgetList = widgetList || '';
+        $.each(widgetList.split(','), function (i, name) {
+            var info = modInfo(name);
+            if (!info || widgets[info.origin]) return;
+            req.push(loadMod(info).then(function (res) {
+                if (res.cached) {
+                    return prepareWidget(info, $('<div>' + res.content + '</div>'));
                 }
-            };
-            loadOneWidget(name[i], cb);
-        } else {
-            loadOneWidget(name, callback);
-        }
+                var pageData = $('<div>' + res.content + '</div>');
+                var template = pageData.children('template');
+                if (template.length > 0) {
+                    pageCache(info.key, res.content);
+                    prepareWidget(info, pageData, template);
+                }
+            }));
+        });
+        return $.when.apply($, req);
     }
 
     function piece(el, param) {
