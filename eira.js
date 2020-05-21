@@ -287,16 +287,10 @@
             defineWidget(widgetInfo.origin, initializer);
         };
         $script.attr('widget-script', widgetInfo.origin);
-        if ($script.attr('use-widget')) {
-            var widgetList = $script.attr('use-widget');
-            loadWidget(widgetList).then(function () {
-                $(document.body).append($script);
-                delete eiraInstance.defineWidget;
-            });
-        } else {
+        loadWidget($script.attr('use-widget')).then(function () {
             $(document.body).append($script);
             delete eiraInstance.defineWidget;
-        }
+        });
         if (!widgets[widgetInfo.id]) {
             widgets[widgetInfo.id] = widgets[widgetInfo.origin];
         }
