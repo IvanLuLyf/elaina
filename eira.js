@@ -276,24 +276,23 @@
     }
 
     function prepareWidget(widgetInfo, $widgetData, $template) {
-        if (!widgets[widgetInfo.origin]) {
-            widgets[widgetInfo.origin] = {};
-        }
+        if (!widgets[widgetInfo.origin]) widgets[widgetInfo.origin] = {};
         $template = $template || $widgetData.children('template');
         widgets[widgetInfo.origin].html = $template.html();
         $(document.body).prepend($widgetData.children('style').attr('widget-style', widgetInfo.origin));
         var $script = $widgetData.children('script');
-        eiraInstance.defineWidget = function (initializer) {
-            defineWidget(widgetInfo.origin, initializer);
-        };
         $script.attr('widget-script', widgetInfo.origin);
+        var deferred = $.Deferred();
         loadWidget($script.attr('use-widget')).then(function () {
+            eiraInstance.defineWidget = function (initializer) {
+                defineWidget(widgetInfo.origin, initializer);
+            };
             $(document.body).append($script);
             delete eiraInstance.defineWidget;
+            deferred.resolve();
         });
-        if (!widgets[widgetInfo.id]) {
-            widgets[widgetInfo.id] = widgets[widgetInfo.origin];
-        }
+        if (!widgets[widgetInfo.id]) widgets[widgetInfo.id] = widgets[widgetInfo.origin];
+        return deferred;
     }
 
     function loadMod(info) {
@@ -328,7 +327,7 @@
                 var template = pageData.children('template');
                 if (template.length > 0) {
                     pageCache(info.key, res.content);
-                    prepareWidget(info, pageData, template);
+                    return prepareWidget(info, pageData, template);
                 }
             }));
         });
