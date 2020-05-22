@@ -320,14 +320,14 @@
             var info = modInfo(name);
             if (!info || widgets[info.origin]) return;
             req.push(loadMod(info).then(function (res) {
-                if (res.cached) {
-                    return prepareWidget(info, $('<div>' + res.content + '</div>'));
-                }
+                if (res.cached) return prepareWidget(info, $('<div>' + res.content + '</div>'));
                 var pageData = $('<div>' + res.content + '</div>');
                 var template = pageData.children('template');
                 if (template.length > 0) {
                     pageCache(info.key, res.content);
                     return prepareWidget(info, pageData, template);
+                } else {
+                    isDebug && console.warn('invalid widget format.');
                 }
             }));
         });
