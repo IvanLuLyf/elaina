@@ -259,7 +259,7 @@
         return {
             id: modId,
             origin: originName,
-            key: MOD_POSTFIX[modType] + '$' + originName,
+            key: modType + '$' + originName,
             path: modPath,
         }
     }
