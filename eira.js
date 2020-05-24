@@ -88,8 +88,7 @@
         var query = {};
         for (var i = 0; i < vs.length; i++) {
             var vp = vs[i].split('=');
-            if (vp[0] !== '')
-                query[vp[0]] = vp[1];
+            if (vp[0] !== '') query[vp[0]] = vp[1];
         }
         return {
             path: match[1][0] === '/' ? match[1] : ('/' + match[1]),
@@ -99,13 +98,13 @@
         }
     }
 
-    function pageCache(view, html) {
+    function pageCache(cacheKey, content) {
         if (isDebug) return;
-        var pk = 'cache#' + view + '@' + DIRS.page;
-        if (typeof html === "undefined") {
+        var pk = 'cache#' + cacheKey;
+        if (typeof content === "undefined") {
             var c = storage(pk);
             if (c.v === pageVer && c.expire > (new Date().getTime())) {
-                return c.html;
+                return c.content;
             } else {
                 storage(pk, null);
             }
@@ -113,7 +112,7 @@
             storage(pk, {
                 v: pageVer,
                 expire: (new Date()).getTime() + cacheExpireTime,
-                html: html,
+                content: content,
             });
         }
     }
