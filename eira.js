@@ -117,6 +117,14 @@
         }
     }
 
+    function clearCache(cacheKey) {
+        if (cacheKey) {
+            storage('cache#' + cacheKey, null);
+        } else {
+            for (var k in localStorage) if (localStorage.hasOwnProperty(k) && startWith(k, NAME + '@' + DIRS.scope + '$cache#')) delete localStorage[k];
+        }
+    }
+
     function startWith(str, find) {
         return str.substring(0, find.length) === find;
     }
@@ -491,6 +499,9 @@
         },
         cookie: function () {
             return cookie.apply(this, arguments);
+        },
+        clearCache: function (key) {
+            clearCache(key);
         },
         router: function () {
             return parseRouter(window.location.hash.substring(1));
