@@ -12,7 +12,7 @@
         'widget': '.html',
         'trait': '.js',
     };
-    var DIRS = {};
+    var DIRS = {}, SOURCES = {};
     var dataStorage = {};
     var events = {};
     var widgets = {};
@@ -248,20 +248,25 @@
         if (!name) return null;
         modType = modType || 'widget';
         var reg = /(.*)\s+as\s+(.*)/;
-        var originName = name, modId, aliasId, modPath, idArr, c = reg.exec(name);
+        var originName = name, modId, aliasId, modPath, modSource, idArr, c = reg.exec(name);
         if (c) {
             originName = c[1];
             aliasId = c[2];
         }
         if (originName[0] === '@') {
             idArr = originName.substring(1).split('.');
-            modId = idArr.pop();
-            modPath = 'https://eira.twimi.cn/' + modType + '/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType];
+            var source = 'https://eira.twimi.cn/';
+            if (SOURCES[idArr[0]]) {
+                source = SOURCES[idArr[0]];
+                idArr.shift();
+            }
+            modSource = source + modType;
         } else {
             idArr = originName.split('.');
-            modId = idArr.pop();
-            modPath = DIRS[modType] + '/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType];
+            modSource = DIRS[modType];
         }
+        modId = idArr.pop();
+        modPath = modSource + ('/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType]).replace('//', '/');
         if (aliasId) modId = aliasId;
         return {
             id: modId,
@@ -458,6 +463,7 @@
         DIRS.widget = options.widgets || (DIRS.page + '/widget');
         DIRS.trait = options.traits || (DIRS.page + '/trait');
         DIRS.scope = options.scope || ('/');
+        $.extend(SOURCES, options.sources);
         appDiv = options.el;
         isDebug = options.debug;
         pageVer = options.version;
