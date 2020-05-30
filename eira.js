@@ -243,33 +243,42 @@
         }
     }
 
-    function modInfo(name, modType) {
+    function modInfo(name, baseNamespace, modType) {
         name = $.trim(name);
         if (!name) return null;
         modType = modType || 'widget';
         var reg = /(.*)\s+as\s+(.*)/;
-        var originName = name, modId, aliasId, modPath, modSource, idArr, c = reg.exec(name);
+        var originName = name, modId, aliasId, modPath, modSource, modPrefix, idArr, c = reg.exec(name);
         if (c) {
             originName = c[1];
             aliasId = c[2];
         }
         if (originName[0] === '@') {
             idArr = originName.substring(1).split('.');
-            var source = 'https://eira.twimi.cn/';
-            if (SOURCES[idArr[0]]) {
-                source = SOURCES[idArr[0]];
+            modId = idArr.pop();
+            modPrefix = '@' + idArr.join('.');
+            var source = 'https://eira.twimi.cn/', sn = idArr[0];
+            if (SOURCES[sn]) {
+                source = SOURCES[sn];
                 idArr.shift();
             }
             modSource = source + modType;
+        } else if (originName[0] === '.') {
+            idArr = ((baseNamespace ? (baseNamespace + '.') : '') + originName.substring(1)).split('.');
+            modId = idArr.pop();
+            modPrefix = idArr.join('.');
+            modSource = DIRS[modType];
         } else {
             idArr = originName.split('.');
+            modId = idArr.pop();
+            modPrefix = idArr.join('.');
             modSource = DIRS[modType];
         }
-        modId = idArr.pop();
         modPath = modSource + ('/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType]).replace('//', '/');
         if (aliasId) modId = aliasId;
         return {
             id: modId,
+            prefix: modPrefix,
             origin: originName,
             key: modType + '$' + originName,
             path: modPath,
@@ -295,7 +304,7 @@
         var $script = $widgetData.children('script');
         $script.attr('widget-script', widgetInfo.origin);
         var deferred = $.Deferred();
-        loadWidget($script.attr('use-widget')).then(function () {
+        loadWidget($script.attr('use-widget'), widgetInfo.prefix).then(function () {
             eiraInstance.defineWidget = function (initializer) {
                 defineWidget(widgetInfo.origin, initializer);
             };
@@ -325,11 +334,11 @@
         return deferred.promise();
     }
 
-    function loadWidget(widgetList) {
+    function loadWidget(widgetList, baseNamespace) {
         var req = [];
         widgetList = widgetList || '';
         $.each(widgetList.split(','), function (i, name) {
-            var info = modInfo(name);
+            var info = modInfo(name, baseNamespace);
             if (!info || widgets[info.origin]) return;
             req.push(loadMod(info).then(function (res) {
                 if (res.cached) return prepareWidget(info, $('<div>' + res.content + '</div>'));
