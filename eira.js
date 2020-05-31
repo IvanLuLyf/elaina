@@ -265,6 +265,7 @@
             modSource = source + modType;
         } else if (originName[0] === '.') {
             idArr = ((baseNamespace ? (baseNamespace + '.') : '') + originName.substring(1)).split('.');
+            originName = idArr.join('.');
             modId = idArr.pop();
             modPrefix = idArr.join('.');
             modSource = DIRS[modType];
@@ -296,15 +297,17 @@
         }
     }
 
-    function prepareWidget(widgetInfo, $widgetData, $template) {
+    function prepareWidget(widgetInfo, dependents, $widgetData, $template) {
         if (!widgets[widgetInfo.origin]) widgets[widgetInfo.origin] = {};
+        if (typeof dependents === 'object') dependents[widgetInfo.origin] = widgets[widgetInfo.origin];
+        widgets[widgetInfo.origin].dependencies = {};
         $template = $template || $widgetData.children('template');
         widgets[widgetInfo.origin].html = $template.html();
         $(document.body).prepend($widgetData.children('style').attr('widget-style', widgetInfo.origin));
         var $script = $widgetData.children('script');
         $script.attr('widget-script', widgetInfo.origin);
         var deferred = $.Deferred();
-        loadWidget($script.attr('use-widget'), widgetInfo.prefix).then(function () {
+        loadWidget($script.attr('use-widget'), widgetInfo.prefix, widgets[widgetInfo.origin].dependencies).then(function () {
             eiraInstance.defineWidget = function (initializer) {
                 defineWidget(widgetInfo.origin, initializer);
             };
@@ -334,19 +337,19 @@
         return deferred.promise();
     }
 
-    function loadWidget(widgetList, baseNamespace) {
+    function loadWidget(widgetList, baseNamespace, dependencies) {
         var req = [];
         widgetList = widgetList || '';
         $.each(widgetList.split(','), function (i, name) {
             var info = modInfo(name, baseNamespace);
             if (!info || widgets[info.origin]) return;
             req.push(loadMod(info).then(function (res) {
-                if (res.cached) return prepareWidget(info, $('<div>' + res.content + '</div>'));
+                if (res.cached) return prepareWidget(info, dependencies, $('<div>' + res.content + '</div>'));
                 var pageData = $('<div>' + res.content + '</div>');
                 var template = pageData.children('template');
                 if (template.length > 0) {
                     pageCache(info.key, res.content);
-                    return prepareWidget(info, pageData, template);
+                    return prepareWidget(info, dependencies, pageData, template);
                 } else {
                     isDebug && console.warn('invalid widget format.');
                 }
