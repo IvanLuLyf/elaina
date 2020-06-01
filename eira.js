@@ -292,8 +292,8 @@
 
     function extendWidget(name, superClass, initializer) {
         widgets[name].initializer = widgets[superClass].initializer.extend(initializer);
-        if (widgets[name].html.trim() === '') {
-            widgets[name].html = widgets[superClass].html;
+        if (widgets[name].content.trim() === '') {
+            widgets[name].content = widgets[superClass].content;
         }
     }
 
@@ -302,7 +302,7 @@
         if (typeof dependents === 'object') dependents[widgetInfo.origin] = widgets[widgetInfo.origin];
         widgets[widgetInfo.origin].dependencies = {};
         $template = $template || $widgetData.children('template');
-        widgets[widgetInfo.origin].html = $template.html();
+        widgets[widgetInfo.origin].content = $template.html();
         $(document.body).prepend($widgetData.children('style').attr('widget-style', widgetInfo.origin));
         var $script = $widgetData.children('script');
         $script.attr('widget-script', widgetInfo.origin);
@@ -383,7 +383,7 @@
                 }
             }
             disposeWidget($el);
-            $el.html(widgets[name].html);
+            $el.html(widgets[name].content);
             autoWidget($el);
             var $slot = $el.find('slot');
             if ($slot.length > 0) {
