@@ -469,6 +469,13 @@
         return Class;
     };
 
+    function isWidgetOf(instance, name) {
+        if (typeof instance === 'object' && widgets[name] && typeof widgets[name].initializer === 'function') {
+            return (instance instanceof widgets[name].initializer);
+        }
+        return false;
+    }
+
     function configure(options) {
         options = options || {};
         DIRS.page = options.pages || 'page';
@@ -546,6 +553,9 @@
         widget: function (el, name, param) {
             return widget(el, name, param);
         },
+        isWidgetOf: function (instance, name) {
+            return isWidgetOf(instance, name);
+        },
         dispose: function (el) {
             dispose(el);
         },
@@ -562,3 +572,4 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
