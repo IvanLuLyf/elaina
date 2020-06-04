@@ -16,6 +16,7 @@
     var dataStorage = {};
     var events = {};
     var widgets = {};
+    var widgetInstance = {}, widgetIndex = 0;
     var prevPath = '';
     var appDiv, isDebug, pageVer, cacheExpireTime;
     var page404;
@@ -368,13 +369,13 @@
 
     function widget(el, name, param) {
         var $el = $(el);
-        if (typeof name === "undefined") {
-            return $el.data('widgetHandler');
+        if (typeof name === 'undefined' && typeof param === 'undefined') {
+            return widgetInstance[$el.attr('widget')]
         }
-        param = param || {};
+        param = $.extend({}, param);
         if (widgets[name]) {
             var Initializer = widgets[name].initializer;
-            if (!$el.attr("widget")) {
+            if (!$el.attr('widget')) {
                 var $children = $el.children();
                 if ($children.length > 0) {
                     $el.data('origin', $children);
@@ -391,31 +392,29 @@
             }
             if (typeof Initializer === 'function') {
                 var handler = new Initializer($el, param);
-                $el.data('widgetHandler', handler);
-                $el.attr('widget', name);
+                var widgetKey = '$' + name + ':' + (++widgetIndex);
+                $el.attr('widget', widgetKey);
                 if (typeof handler['created'] === "function") {
                     handler['created']();
                 }
+                widgetInstance[widgetKey] = handler;
                 return handler;
             }
         }
     }
 
     function disposeWidget(el) {
-        var $el = $(el);
-        var oldHandler = $el.data('widgetHandler');
-        if (oldHandler) {
-            if (typeof oldHandler.unload === "function") {
-                oldHandler.unload();
+        var $el = $(el), widgetKey = $el.attr('widget');
+        if (widgetInstance[widgetKey]) {
+            if (typeof widgetInstance[widgetKey].unload === "function") {
+                widgetInstance[widgetKey].unload();
             }
-            oldHandler = undefined;
-            $el.removeData('widgetHandler');
             $el.removeAttr('widget');
             $el.find('[widget]').each(function () {
                 disposeWidget($(this));
             });
         }
-        $el.empty();
+        $el.off().empty();
         $el.html($el.data('origin'));
     }
 
@@ -572,4 +571,5 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
 
