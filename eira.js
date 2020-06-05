@@ -387,8 +387,15 @@
             $el.html(widgets[name].content);
             autoWidget($el);
             var $slot = $el.find('slot');
-            if ($slot.length > 0) {
-                $slot.replaceWith($el.data('origin'));
+            if ($slot.length === 1) $slot.replaceWith($el.data('origin'));
+            if ($slot.length > 1) {
+                var $origin = $('<div></div>');
+                $origin.append($el.data('origin'));
+                $slot.each(function () {
+                    var slotName = $(this).attr('name');
+                    if (slotName) $(this).replaceWith($origin.find('[slot="' + slotName + '"]'));
+                });
+                $el.find('slot').replaceWith($origin.contents());
             }
             if (typeof Initializer === 'function') {
                 var handler = new Initializer($el, param);
@@ -571,5 +578,3 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
-
-
