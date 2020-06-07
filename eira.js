@@ -20,6 +20,7 @@
     var prevPath = '';
     var appDiv, isDebug, pageVer, cacheExpireTime;
     var page404;
+    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\n';
 
     function data(keyOrData, value) {
         if (typeof keyOrData === 'undefined') return dataStorage;
@@ -493,6 +494,7 @@
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
+        if (isDebug) console.log('%c%s', 'color:#1996ff;', LOGO);
         if (options.page404) {
             page404 = options.page404;
             if (page404[0] !== '/') {
@@ -578,3 +580,4 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
