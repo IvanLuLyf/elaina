@@ -105,7 +105,7 @@
         var pk = 'cache#' + cacheKey;
         if (typeof content === "undefined") {
             var c = storage(pk);
-            if (c.v === pageVer && c.expire > (new Date().getTime())) {
+            if (c.v === pageVer && c.expire > Date.now()) {
                 return c.content;
             } else {
                 storage(pk, null);
@@ -113,7 +113,7 @@
         } else {
             storage(pk, {
                 v: pageVer,
-                expire: (new Date()).getTime() + cacheExpireTime,
+                expire: Date.now() + cacheExpireTime,
                 content: content,
             });
         }
