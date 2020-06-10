@@ -21,6 +21,7 @@
     var appDiv, isDebug, pageVer, cacheExpireTime;
     var page404;
     var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\n';
+    var AT_EVENTS = ['click', 'dblclick', 'change', 'input', 'contextmenu'];
 
     function data(keyOrData, value) {
         if (typeof keyOrData === 'undefined') return dataStorage;
@@ -154,6 +155,14 @@
             }
         }
         return props;
+    }
+
+    function processEvent(evt) {
+        var evtArr = evt.match(/\((.*)\)$/) || [];
+        return {
+            name: evt.replace(evtArr[0], ''),
+            param: evtArr[1] ? JSON.parse('[' + evtArr[1] + ']') : [],
+        };
     }
 
     function autoWidget($el, extra) {
@@ -405,6 +414,15 @@
                 if (typeof handler['created'] === "function") {
                     handler['created']();
                 }
+                $.each(AT_EVENTS, function (k, evt) {
+                    $el.on(evt, '[\\@' + evt + ']', function (e) {
+                        var evtInfo = processEvent($(this).attr('@' + evt));
+                        if (typeof handler[evtInfo.name] === 'function') {
+                            evtInfo.param.unshift(e);
+                            handler[evtInfo.name].apply(handler, evtInfo.param);
+                        }
+                    });
+                });
                 widgetInstance[widgetKey] = handler;
                 return handler;
             }
@@ -580,4 +598,5 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
 
