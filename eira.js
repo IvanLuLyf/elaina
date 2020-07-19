@@ -241,8 +241,7 @@
         });
     }
 
-    function renderPage() {
-        var pageInfo = parseRouter(window.location.hash.substring(1));
+    var routerHandler = function (pageInfo) {
         if (pageInfo.path === prevPath) {
             if (typeof events['change'] === 'function') events['change'](pageInfo);
         } else {
@@ -252,6 +251,10 @@
                 if (typeof events['load'] === 'function') events['load']();
             });
         }
+    };
+
+    function renderPage() {
+        routerHandler(parseRouter(window.location.hash.substring(1)));
     }
 
     function modInfo(name, baseNamespace, modType) {
@@ -554,7 +557,11 @@
         clearCache: function (key) {
             clearCache(key);
         },
-        router: function () {
+        router: function (hanlder) {
+            if (typeof hanlder === 'function') {
+                routerHandler = hanlder;
+                return this;
+            }
             return parseRouter(window.location.hash.substring(1));
         },
         navigate: function (path, search, hash) {
@@ -598,5 +605,6 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
 
 
