@@ -144,6 +144,11 @@
         return text.replace(/([A-Z])/g, "-$1").toLowerCase();
     }
 
+    function formatUrl(path, search, hash) {
+        var q = $.param(search || {});
+        return (path ? path : '') + (q ? ('?' + q) : '') + (hash ? ('#' + hash) : '');
+    }
+
     function getProp(el, $parent, extra) {
         var props = {};
         extra = extra || {};
@@ -564,9 +569,14 @@
             }
             return parseRouter(window.location.hash.substring(1));
         },
+        formatUrl: function (path, search, hash) {
+            return formatUrl(path, search, hash);
+        },
         navigate: function (path, search, hash) {
-            var q = $.param(search || {});
-            window.location.hash = '#' + (path ? path : '') + (q ? ('?' + q) : '') + (hash ? ('#' + hash) : '');
+            window.location.hash = '#' + formatUrl(path, search, hash);
+        },
+        replace: function (path, search, hash) {
+            window.location.replace('#' + formatUrl(path, search, hash))
         },
         on: function (evtName, callback) {
             bindEvent(evtName, callback);
