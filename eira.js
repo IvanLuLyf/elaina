@@ -306,6 +306,7 @@
     }
 
     function defineWidget(name, initializer) {
+        wrapWidget(initializer);
         widgets[name].initializer = initializer;
     }
 
@@ -313,6 +314,19 @@
         widgets[name].initializer = widgets[superClass].initializer.extend(initializer);
         if (widgets[name].content.trim() === '') {
             widgets[name].content = widgets[superClass].content;
+        }
+    }
+
+    function wrapWidget(initializer) {
+        var eventKey = '_events' + Date.now();
+        initializer.prototype.$on = function (name, callback) {
+            if (typeof callback === 'function') {
+                if (!this[eventKey]) this[eventKey] = {};
+                this[eventKey][name] = callback;
+            }
+        };
+        initializer.prototype.$emit = function (name, param) {
+            if (this[eventKey] && typeof this[eventKey][name] === 'function') return this[eventKey][name](param);
         }
     }
 
@@ -615,6 +629,7 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
+
 
 
 
