@@ -478,8 +478,8 @@
 
     var initializing = false;
 
-    window.Widget = function () {
-    };
+    function Widget() {
+    }
 
     Widget.extend = function widgetExtends(props) {
         var _super = this.prototype;
