@@ -305,15 +305,32 @@
         }
     }
 
-    function defineWidget(name, initializer) {
-        wrapWidget(initializer);
-        widgets[name].initializer = initializer;
+    function defineWidgetBuilder(name) {
+        return function defineWidget(initializer) {
+            if (typeof initializer === 'object') {
+                initializer = Widget.extend(initializer);
+            }
+            if (typeof initializer !== 'function') return console.error('Widget definition must be Object or Function');
+            wrapWidget(initializer);
+            widgets[name].initializer = initializer;
+        }
     }
 
-    function extendWidget(name, superClass, initializer) {
-        widgets[name].initializer = widgets[superClass].initializer.extend(initializer);
-        if (widgets[name].content.trim() === '') {
-            widgets[name].content = widgets[superClass].content;
+    function extendWidgetBuilder(name) {
+        return function extendWidget(initializer, superClassName) {
+            var parent = widgets[superClassName];
+            if (!parent) return console.error('Base widget is not defined');
+            var baseWidget = parent.initializer;
+            if (!baseWidget.extend) {
+                baseWidget = Widget.extend(parent.initializer.prototype);
+                baseWidget.prototype.init = parent.initializer;
+            }
+            var childWidget = baseWidget.extend(initializer);
+            wrapWidget(childWidget);
+            widgets[name].initializer = childWidget;
+            if (!$.trim(widgets[name].content)) {
+                widgets[name].content = parent.content;
+            }
         }
     }
 
@@ -341,11 +358,11 @@
         $script.attr('widget-script', widgetInfo.origin);
         var deferred = $.Deferred();
         loadWidget($script.attr('use-widget'), widgetInfo.prefix, widgets[widgetInfo.origin].dependencies).then(function () {
-            eiraInstance.defineWidget = function (initializer) {
-                defineWidget(widgetInfo.origin, initializer);
-            };
+            eiraInstance.defineWidget = defineWidgetBuilder(widgetInfo.origin);
+            eiraInstance.extendWidget = extendWidgetBuilder(widgetInfo.origin);
             $(document.body).append($script);
             delete eiraInstance.defineWidget;
+            delete eiraInstance.extendWidget;
             deferred.resolve();
         });
         if (!widgets[widgetInfo.id]) widgets[widgetInfo.id] = widgets[widgetInfo.origin];
@@ -598,9 +615,6 @@
         render: function (el, view, callback) {
             replaceBlock(el, view, false, callback);
         },
-        extendWidget: function (name, superClass, init) {
-            extendWidget(name, superClass, init);
-        },
         loadWidget: function (name, callback) {
             loadWidget(name, callback);
         },
@@ -629,7 +643,3 @@
     $.Eira = eiraInstance;
     return eiraInstance;
 });
-
-
-
-
