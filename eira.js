@@ -8,6 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
+    var VERSION = '0.0.1';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -18,9 +19,9 @@
     var widgets = {};
     var widgetInstance = {}, widgetIndex = 0;
     var prevPath = '';
-    var appDiv, isDebug, pageVer, cacheExpireTime;
+    var rootElem, isDebug, pageVer, cacheExpireTime;
     var page404;
-    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\n';
+    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\nPowered By Eira ' + VERSION + '.';
     var AT_EVENTS = ['click', 'dblclick', 'change', 'input', 'contextmenu'];
 
     function data(keyOrData, value) {
@@ -252,7 +253,7 @@
         } else {
             prevPath = pageInfo.path;
             delete events['change'];
-            replaceBlock(appDiv, pageInfo.path, true, function () {
+            replaceBlock(rootElem, pageInfo.path, true, function () {
                 if (typeof events['load'] === 'function') events['load']();
             });
         }
@@ -547,7 +548,7 @@
         DIRS.trait = options.traits || (DIRS.page + '/trait');
         DIRS.scope = options.scope || ('/');
         $.extend(SOURCES, options.sources);
-        appDiv = options.el;
+        rootElem = options.el;
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
@@ -630,6 +631,7 @@
         dispose: function (el) {
             dispose(el);
         },
+        VERSION: VERSION,
     };
 
     $.fn.extend({
