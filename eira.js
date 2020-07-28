@@ -4,7 +4,7 @@
             return factory(name, window.jQuery);
         });
     } else {
-        if (!window['$' + name]) factory(name, window.jQuery);
+        if (!window[name]) factory(name, window.jQuery);
     }
 })('Eira', function (NAME, $) {
     'use strict';
@@ -643,5 +643,7 @@
 
     var eiraInstance = new Eira();
     $.Eira = eiraInstance;
+    window.Eira = eiraInstance;
     return eiraInstance;
 });
+
