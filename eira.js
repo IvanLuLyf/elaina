@@ -548,7 +548,6 @@
         DIRS.trait = options.traits || (DIRS.page + '/trait');
         DIRS.scope = options.scope || ('/');
         $.extend(SOURCES, options.sources);
-        rootElem = options.el;
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
@@ -559,14 +558,19 @@
                 page404 = '/' + page404;
             }
         }
+        mount(options.el);
+    }
 
-        $(function () {
-            renderPage();
-        });
-
-        $(window).on('hashchange', function (e) {
-            renderPage();
-        });
+    function mount(el) {
+        if (el && !rootElem) {
+            rootElem = $(el);
+            $(function () {
+                renderPage();
+            });
+            $(window).on('hashchange', function (e) {
+                renderPage();
+            });
+        }
     }
 
     function bindEvent(evtName, callback) {
@@ -579,6 +583,10 @@
 
     Eira.prototype = {
         constructor: Eira,
+        configure: function (options) {
+            configure(options);
+            return this;
+        },
         data: function () {
             return data.apply(this, arguments);
         },
@@ -603,6 +611,10 @@
         },
         formatUrl: function (path, search, hash) {
             return formatUrl(path, search, hash);
+        },
+        mount: function (el) {
+            mount(el);
+            return this;
         },
         navigate: function (path, search, hash) {
             window.location.hash = '#' + formatUrl(path, search, hash);
@@ -646,4 +658,3 @@
     window.Eira = eiraInstance;
     return eiraInstance;
 });
-
