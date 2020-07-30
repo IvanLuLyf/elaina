@@ -8,7 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
-    var VERSION = '0.0.1';
+    var VERSION = '0.0.3';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
