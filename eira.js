@@ -8,7 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
-    var VERSION = '0.0.3';
+    var VERSION = '0.0.4';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -21,7 +21,7 @@
     var prevPath = '';
     var rootElem, isDebug, pageVer, cacheExpireTime;
     var page404;
-    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\nPowered By Eira ' + VERSION + '.';
+    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\nPowered By ' + NAME + ' Ver ' + VERSION + '.';
     var AT_EVENTS = ['click', 'dblclick', 'change', 'input', 'contextmenu'];
 
     function data(keyOrData, value) {
