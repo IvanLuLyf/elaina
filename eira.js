@@ -564,6 +564,7 @@
     function mount(el) {
         if (el && !rootElem) {
             rootElem = $(el);
+            eiraInstance.el = rootElem[0];
             $(function () {
                 renderPage();
             });
