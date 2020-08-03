@@ -8,7 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
-    var VERSION = '0.0.4';
+    var VERSION = '0.0.6';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -321,6 +321,8 @@
         return function extendWidget(initializer, superClassName) {
             var parent = widgets[superClassName];
             if (!parent) return console.error('Base widget is not defined');
+            console.log(parent)
+            if (parent.isFinal) return console.error('Base widget is being declared as final');
             var baseWidget = parent.initializer;
             if (!baseWidget.extend) {
                 baseWidget = Widget.extend(parent.initializer.prototype);
@@ -359,6 +361,7 @@
         $script.attr('widget-script', widgetInfo.origin);
         var deferred = $.Deferred();
         loadWidget($script.attr('use-widget'), widgetInfo.prefix, widgets[widgetInfo.origin].dependencies).then(function () {
+            widgets[widgetInfo.origin].isFinal = $script.attr('final') !== undefined;
             eiraInstance.defineWidget = defineWidgetBuilder(widgetInfo.origin);
             eiraInstance.extendWidget = extendWidgetBuilder(widgetInfo.origin);
             $(document.body).append($script);
