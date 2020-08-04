@@ -8,7 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
-    var VERSION = '0.0.6';
+    var VERSION = '0.0.7';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -320,9 +320,8 @@
     function extendWidgetBuilder(name) {
         return function extendWidget(initializer, superClassName) {
             var parent = widgets[superClassName];
-            if (!parent) return console.error('Base widget is not defined');
-            console.log(parent)
-            if (parent.isFinal) return console.error('Base widget is being declared as final');
+            if (!parent) return console.error('Base widget [' + superClassName + '] is not defined.');
+            if (parent.isFinal) return console.error('Base widget [' + superClassName + '] is being declared as final.');
             var baseWidget = parent.initializer;
             if (!baseWidget.extend) {
                 baseWidget = Widget.extend(parent.initializer.prototype);
