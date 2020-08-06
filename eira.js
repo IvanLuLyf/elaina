@@ -8,7 +8,7 @@
     }
 })('Eira', function (NAME, $) {
     'use strict';
-    var VERSION = '0.0.7';
+    var VERSION = '0.1.0';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -16,7 +16,7 @@
     var DIRS = {}, SOURCES = {};
     var dataStorage = {};
     var events = {};
-    var widgets = {};
+    var widgets = {}, traits = {};
     var widgetInstance = {}, widgetIndex = 0;
     var prevPath = '';
     var rootElem, isDebug, pageVer, cacheExpireTime;
@@ -312,6 +312,14 @@
                 initializer = Widget.extend(initializer);
             }
             if (typeof initializer !== 'function') return console.error('Widget definition must be Object or Function');
+            if (widgets[name].useTrait) {
+                var traitList = widgets[name].useTrait.split(',');
+                $.each(traitList, function (i, trait) {
+                    $.each(traits[$.trim(trait)], function (func, fn) {
+                        if (!initializer.prototype[func]) initializer.prototype[func] = fn;
+                    });
+                })
+            }
             wrapWidget(initializer);
             widgets[name].initializer = initializer;
         }
@@ -326,6 +334,14 @@
             if (!baseWidget.extend) {
                 baseWidget = Widget.extend(parent.initializer.prototype);
                 baseWidget.prototype.init = parent.initializer;
+            }
+            if (widgets[name].useTrait) {
+                var traitList = widgets[name].useTrait.split(',');
+                var tmpTraits = {};
+                $.each(traitList, function (i, trait) {
+                    tmpTraits = $.extend(tmpTraits, traits[$.trim(trait)]);
+                });
+                baseWidget = baseWidget.extend(tmpTraits);
             }
             var childWidget = baseWidget.extend(initializer);
             wrapWidget(childWidget);
@@ -360,6 +376,9 @@
         $script.attr('widget-script', widgetInfo.origin);
         var deferred = $.Deferred();
         loadWidget($script.attr('use-widget'), widgetInfo.prefix, widgets[widgetInfo.origin].dependencies).then(function () {
+            widgets[widgetInfo.origin].useTrait = $script.attr('use-trait');
+            return loadTrait($script.attr('use-trait'), widgetInfo.prefix);
+        }).then(function () {
             widgets[widgetInfo.origin].isFinal = $script.attr('final') !== undefined;
             eiraInstance.defineWidget = defineWidgetBuilder(widgetInfo.origin);
             eiraInstance.extendWidget = extendWidgetBuilder(widgetInfo.origin);
@@ -406,6 +425,30 @@
                 } else {
                     isDebug && console.warn('invalid widget format.');
                 }
+            }));
+        });
+        return $.when.apply($, req);
+    }
+
+    function loadTrait(traitList, baseNamespace) {
+        var req = [];
+        traitList = traitList || '';
+        $.each(traitList.split(','), function (i, name) {
+            var info = modInfo(name, baseNamespace, 'trait');
+            if (!info || traits[info.origin]) return;
+            req.push(loadMod(info).then(function (res) {
+                var func = new Function('window', '$', 'jQuery', res.content);
+                var called = false;
+                eiraInstance.defineTrait = function (lib) {
+                    if (typeof lib === 'object') {
+                        traits[info.origin] = lib;
+                        called = true;
+                    }
+                };
+                func(window, $, $);
+                delete eiraInstance.defineTrait;
+                if (!called && isDebug) console.warn('Trait [' + info.origin + '] is not defined');
+                traits[info.id] = traits[info.origin];
             }));
         });
         return $.when.apply($, req);
