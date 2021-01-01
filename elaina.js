@@ -6,9 +6,9 @@
     } else {
         if (!window[name]) factory(name, window.jQuery);
     }
-})('Eira', function (NAME, $) {
+})('Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '0.1.0';
+    var VERSION = '1.0.1';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -21,7 +21,7 @@
     var prevPath = '';
     var rootElem, isDebug, pageVer, cacheExpireTime;
     var page404;
-    var LOGO = '      _\n  ___(_)_ __ __ _\n / _ \\ | \'__/ _` |\n|  __/ | | | (_| |\n \\___|_|_|  \\__,_|\n\nPowered By ' + NAME + ' Ver ' + VERSION + '.';
+    var LOGO = '  _____ _       _\n | ____| | __ _(_)_ __   __ _\n |  _| | |/ _` | | \'_ \\ / _` |\n | |___| | (_| | | | | | (_| |\n |_____|_|\\__,_|_|_| |_|\\__,_|\n\nPowered By ' + NAME + ' Ver ' + VERSION + '.';
     var AT_EVENTS = ['click', 'dblclick', 'change', 'input', 'contextmenu'];
 
     function data(keyOrData, value) {
@@ -380,11 +380,11 @@
             return loadTrait($script.attr('use-trait'), widgetInfo.prefix);
         }).then(function () {
             widgets[widgetInfo.origin].isFinal = $script.attr('final') !== undefined;
-            eiraInstance.defineWidget = defineWidgetBuilder(widgetInfo.origin);
-            eiraInstance.extendWidget = extendWidgetBuilder(widgetInfo.origin);
+            appSingleton.defineWidget = defineWidgetBuilder(widgetInfo.origin);
+            appSingleton.extendWidget = extendWidgetBuilder(widgetInfo.origin);
             $(document.body).append($script);
-            delete eiraInstance.defineWidget;
-            delete eiraInstance.extendWidget;
+            delete appSingleton.defineWidget;
+            delete appSingleton.extendWidget;
             deferred.resolve();
         });
         if (!widgets[widgetInfo.id]) widgets[widgetInfo.id] = widgets[widgetInfo.origin];
@@ -439,14 +439,14 @@
             req.push(loadMod(info).then(function (res) {
                 var func = new Function('window', '$', 'jQuery', res.content);
                 var called = false;
-                eiraInstance.defineTrait = function (lib) {
+                appSingleton.defineTrait = function (lib) {
                     if (typeof lib === 'object') {
                         traits[info.origin] = lib;
                         called = true;
                     }
                 };
                 func(window, $, $);
-                delete eiraInstance.defineTrait;
+                delete appSingleton.defineTrait;
                 if (!called && isDebug) console.warn('Trait [' + info.origin + '] is not defined');
                 traits[info.id] = traits[info.origin];
             }));
@@ -609,7 +609,7 @@
     function mount(el) {
         if (el && !rootElem) {
             rootElem = $(el);
-            eiraInstance.el = rootElem[0];
+            appSingleton.el = rootElem[0];
             $(function () {
                 renderPage();
             });
@@ -623,12 +623,12 @@
         if (typeof callback === 'function') events[evtName] = callback;
     }
 
-    function Eira() {
+    function Elaina() {
 
     }
 
-    Eira.prototype = {
-        constructor: Eira,
+    Elaina.prototype = {
+        constructor: Elaina,
         configure: function (options) {
             configure(options);
             return this;
@@ -696,11 +696,17 @@
         Eira: function (options) {
             configure($.extend({el: $(this)}, options));
             return this;
+        },
+        Elaina: function (options) {
+            configure($.extend({el: $(this)}, options));
+            return this;
         }
     });
 
-    var eiraInstance = new Eira();
-    $.Eira = eiraInstance;
-    window.Eira = eiraInstance;
-    return eiraInstance;
+    var appSingleton = new Elaina();
+    $.Elaina = appSingleton;
+    $.Eira = appSingleton;
+    window.Elaina = appSingleton;
+    window.Eira = appSingleton;
+    return appSingleton;
 });

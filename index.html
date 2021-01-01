@@ -9,17 +9,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.min.js"></script>
-    <script src="eira.js"></script>
+    <script src="elaina.js"></script>
 </head>
 <body>
 <div id="app"></div>
 <script>
-    $("#app").Eira({
+    var prevPath = '';
+    Elaina.configure({
         pages: './page',
         widgets: './widget',
+        traits: './trait',
+        debug: true,
         scope: '/eira/',
         version: '0.0.1',
-    })
+    }).router(function (pageInfo) {
+        if (pageInfo.path !== prevPath) {
+            prevPath = pageInfo.path;
+            Eira.render(Eira.el, pageInfo.path);
+        }
+    }).mount('#app');
 </script>
 </body>
 </html>

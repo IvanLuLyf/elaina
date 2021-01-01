@@ -1,0 +1,22 @@
+{
+  "name": "elaina",
+  "version": "1.0.1",
+  "description": "a page render",
+  "main": "elaina.js",
+  "files": [
+    "elaina.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IvanLuLyf/elaina.git"
+  },
+  "keywords": [
+    "Elaina"
+  ],
+  "author": "IvanLu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/IvanLuLyf/elaina/issues"
+  },
+  "homepage": "https://ivanlulyf.github.io/elaina"
+}
