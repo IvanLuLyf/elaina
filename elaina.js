@@ -1,14 +1,16 @@
-;(function (name, factory) {
+;(function (root, name, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['jquery'], function () {
-            return factory(name, window.jQuery);
+        define(['jquery'], function (jQuery) {
+            return factory(name, jQuery);
         });
+    } else if (typeof exports === 'object' && typeof module === 'object') {
+        module.exports = factory(name, require('jquery'));
     } else {
-        if (!window[name]) factory(name, window.jQuery);
+        if (!root[name]) factory(name, root.jQuery);
     }
-})('Elaina', function (NAME, $) {
+})(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.0.1';
+    var VERSION = '1.0.2';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',

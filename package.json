@@ -1,6 +1,6 @@
 {
   "name": "elaina",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a page render",
   "main": "elaina.js",
   "files": [
