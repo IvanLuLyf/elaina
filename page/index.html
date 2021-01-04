@@ -1,23 +1,7 @@
 <title>Eira - a page render</title>
 <template>
-    <div auto-widget="eira.badge">Hello World</div>
-    <div auto-widget="test.atBtn">
-        Hello
-    </div>
-    <div id="test_list">
-        <span>test</span>
-    </div>
+    <div>Hello World</div>
 </template>
-<script use-widget="eira.badge,test.atBtn,eira.listView,bootstrap.inputBox">
-    (function () {
-        Elaina.widget($('#test_list'), 'listView', {
-            data: [1, 2, 3]
-        });
-        Elaina.popup('inputBox', {
-            title: '2333',
-            msg: 'Input Data',
-        }).$on('input', function (res) {
-            console.log(res);
-        });
-    })()
+<script>
+
 </script>
