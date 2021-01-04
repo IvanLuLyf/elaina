@@ -22,7 +22,6 @@
     (function () {
         function Dialog($elem, conf) {
             var that = this;
-            this._events = {};
             this.$dialog = $elem.find('[page-id="dialog"]');
             this.$header = $elem.find('.modal-header');
             this.$title = $elem.find('[page-id="title"]');
@@ -39,15 +38,15 @@
             if (conf.ok !== undefined || conf.cancel !== undefined) {
                 if (conf.ok !== undefined) {
                     var $btnOk = $('<button type="button" class="btn btn-primary">' + conf.ok + '</button>');
-                    $btnOk.click(function () {
-                        if (typeof that._events['ok'] === 'function') that._events['ok']();
+                    $btnOk.on('click', function () {
+                        that.$emit('ok', {});
                     });
                     this.$footer.append($btnOk);
                 }
                 if (conf.cancel !== undefined) {
                     var $btnCancel = $('<button type="button" class="btn btn-secondary" data-dismiss="modal">' + conf.cancel + '</button>');
-                    $btnCancel.click(function () {
-                        if (typeof that._events['cancel'] === 'function') that._events['cancel']();
+                    $btnCancel.on('click', function () {
+                        that.$emit('cancel', {});
                     });
                     this.$footer.append($btnCancel);
                 }
@@ -55,10 +54,6 @@
                 this.$footer.hide();
             }
         }
-
-        Dialog.prototype.on = function (evtName, callback) {
-            if (typeof callback === 'function') this._events[evtName] = callback;
-        };
 
         Dialog.prototype.title = function (v) {
             if (typeof v === "undefined") {
@@ -86,6 +81,6 @@
             this.$dialog.hide();
         };
 
-        $.Eira.defineWidget(Dialog);
-    })()
+        Elaina.defineWidget(Dialog);
+    })();
 </script>
