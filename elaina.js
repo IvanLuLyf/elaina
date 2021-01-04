@@ -469,6 +469,12 @@
         autoWidget($el, param);
     }
 
+    function popup(name, param) {
+        var $el = $('<div popup>');
+        $(document.body).append($el);
+        return widget($el, name, param);
+    }
+
     function widget(el, name, param) {
         var $el = $(el);
         if (typeof name === 'undefined' && typeof param === 'undefined') {
@@ -501,6 +507,7 @@
             }
             if (typeof Initializer === 'function') {
                 var handler = new Initializer($el, param);
+                handler.$el = $el[0];
                 var widgetKey = '$' + name + ':' + (++widgetIndex);
                 $el.attr('widget', widgetKey);
                 if (typeof handler['created'] === "function") {
@@ -541,6 +548,7 @@
             disposeWidget($(this));
         });
         disposeWidget(el);
+        if ($el.attr('popup') !== undefined) $el.remove();
         $el = null;
     }
 
@@ -688,6 +696,9 @@
         },
         piece: function (el, param) {
             piece(el, param);
+        },
+        popup: function (name, param) {
+            return popup(name, param);
         },
         widget: function (el, name, param) {
             return widget(el, name, param);
