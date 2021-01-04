@@ -1,11 +1,14 @@
 {
   "name": "elaina",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "a page render",
   "main": "elaina.js",
   "files": [
     "elaina.js"
   ],
+  "dependencies": {
+    "jquery": "^3.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/IvanLuLyf/elaina.git"

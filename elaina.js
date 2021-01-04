@@ -10,7 +10,7 @@
     }
 })(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.0.2';
+    var VERSION = '1.0.3';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -366,10 +366,14 @@
                 if (!this[eventKey]) this[eventKey] = {};
                 this[eventKey][name] = callback;
             }
+            return this;
         };
         initializer.prototype.$emit = function (name, param) {
             if (this[eventKey] && typeof this[eventKey][name] === 'function') return this[eventKey][name](param);
-        }
+        };
+        initializer.prototype.$dispose = function () {
+            dispose(this.$el);
+        };
     }
 
     function prepareWidget(widgetInfo, dependents, $widgetData, $template) {
