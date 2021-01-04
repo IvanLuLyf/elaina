@@ -26,6 +26,11 @@
     var LOGO = '  _____ _       _\n | ____| | __ _(_)_ __   __ _\n |  _| | |/ _` | | \'_ \\ / _` |\n | |___| | (_| | | | | | (_| |\n |_____|_|\\__,_|_|_| |_|\\__,_|\n\nPowered By ' + NAME + ' Ver ' + VERSION + '.';
     var AT_EVENTS = ['click', 'dblclick', 'change', 'input', 'contextmenu'];
 
+    function logo(ret) {
+        if (ret) return LOGO;
+        console.log('%c%s', 'color:#1996ff;', LOGO)
+    }
+
     function data(keyOrData, value) {
         if (typeof keyOrData === 'undefined') return dataStorage;
         if (typeof keyOrData === 'object') {
@@ -519,13 +524,12 @@
     function disposeWidget(el) {
         var $el = $(el), widgetKey = $el.attr('widget');
         if (widgetInstance[widgetKey]) {
-            if (typeof widgetInstance[widgetKey].unload === "function") {
-                widgetInstance[widgetKey].unload();
-            }
+            if (typeof widgetInstance[widgetKey].unload === "function") widgetInstance[widgetKey].unload();
             $el.removeAttr('widget');
             $el.find('[widget]').each(function () {
                 disposeWidget($(this));
             });
+            delete widgetInstance[widgetKey];
         }
         $el.off().empty();
         $el.html($el.data('origin'));
@@ -598,7 +602,7 @@
         isDebug = options.debug;
         pageVer = options.version;
         cacheExpireTime = options.expire || 604800;
-        if (isDebug) console.log('%c%s', 'color:#1996ff;', LOGO);
+        if (isDebug) logo();
         if (options.page404) {
             page404 = options.page404;
             if (page404[0] !== '/') {
@@ -631,6 +635,9 @@
 
     Elaina.prototype = {
         constructor: Elaina,
+        logo: function (returns) {
+            return logo(returns);
+        },
         configure: function (options) {
             configure(options);
             return this;
