@@ -1,10 +1,11 @@
 {
   "name": "elaina",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "a page render",
   "main": "elaina.js",
   "files": [
-    "elaina.js"
+    "elaina.js",
+    "README.md"
   ],
   "dependencies": {
     "jquery": "^3.0.0"
