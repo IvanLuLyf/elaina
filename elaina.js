@@ -717,10 +717,6 @@
     };
 
     $.fn.extend({
-        Eira: function (options) {
-            configure($.extend({el: $(this)}, options));
-            return this;
-        },
         Elaina: function (options) {
             configure($.extend({el: $(this)}, options));
             return this;
@@ -729,8 +725,6 @@
 
     var appSingleton = new Elaina();
     $.Elaina = appSingleton;
-    $.Eira = appSingleton;
     window.Elaina = appSingleton;
-    window.Eira = appSingleton;
     return appSingleton;
 });
