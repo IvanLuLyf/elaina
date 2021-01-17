@@ -83,7 +83,7 @@
             } else {
                 if (valueOrSecond === null) {
                     exp.setTime(exp.getTime() - 1);
-                    if (cookieData(nameOrData) !== null) document.cookie = nameOrData + "=;expires=" + exp.toUTCString() + ";path=/;";
+                    if (cookie(nameOrData) !== null) document.cookie = nameOrData + "=;expires=" + exp.toUTCString() + ";path=/;";
                 } else {
                     exp.setTime(exp.getTime() + (second || defaultExpire) * 1000);
                     document.cookie = nameOrData + "=" + escape(valueOrSecond) + ";expires=" + exp.toUTCString() + ";path=/;";
