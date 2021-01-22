@@ -228,28 +228,26 @@
             url: DIRS.page + view + '.html' + (pageVer ? ('?v=' + pageVer) : ''),
             type: 'get',
             dataType: 'html',
-            success: function (html) {
-                var pageData = $('<div>' + html + '</div>');
-                var template = pageData.children('template');
-                if (template.length > 0) {
-                    pageCache(view, html);
-                    replaceContent($el, isPage, callback, pageData, template);
-                } else {
-                    if (page404 && view !== page404) {
-                        replaceBlock($el, page404, isPage);
-                    } else {
-                        if (isPage) document.title = '404 Not Found';
-                        $el.html('<h1>404 Not Found</h1>');
-                    }
-                }
-            },
-            error: function (err) {
+        }).then(function (html) {
+            var pageData = $('<div>' + html + '</div>');
+            var template = pageData.children('template');
+            if (template.length > 0) {
+                pageCache(view, html);
+                replaceContent($el, isPage, callback, pageData, template);
+            } else {
                 if (page404 && view !== page404) {
                     replaceBlock($el, page404, isPage);
                 } else {
                     if (isPage) document.title = '404 Not Found';
                     $el.html('<h1>404 Not Found</h1>');
                 }
+            }
+        }).catch(function (err) {
+            if (page404 && view !== page404) {
+                replaceBlock($el, page404, isPage);
+            } else {
+                if (isPage) document.title = '404 Not Found';
+                $el.html('<h1>404 Not Found</h1>');
             }
         });
     }
