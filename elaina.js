@@ -46,14 +46,16 @@
         if (!key) return;
         var realKey = NAME + '@' + DIRS.scope + '$' + key;
         if (data === null) return delete storage[realKey];
-        if (typeof data === "undefined") {
+        if (data === undefined) {
             try {
                 return JSON.parse(storage[realKey]);
             } catch (e) {
-                return {};
+                if (storage[realKey] === undefined) return {};
+                return storage[realKey];
             }
         }
-        if (typeof data === 'object') storage.setItem(realKey, JSON.stringify(data));
+        if (typeof data === 'object') storage[realKey] = JSON.stringify(data);
+        else storage[realKey] = data;
     }
 
     function storage(key, data) {
