@@ -95,7 +95,7 @@
     }
 
     function parseRouter(hash) {
-        var match = hash.match(/^([\/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
+        var match = hash.match(/^([\/]?[^?#]*)(\?[^#]*|)(#.*|)$/);
         var qs = match[2].substring(1);
         var vs = qs.split('&');
         var query = {};
