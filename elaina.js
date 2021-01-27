@@ -414,7 +414,7 @@
             deferred.resolve({
                 content: content,
             });
-        }).fail(function (err) {
+        }).catch(function (err) {
             deferred.resolve({});
         });
         return deferred.promise();
