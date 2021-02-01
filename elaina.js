@@ -334,6 +334,7 @@
 
     function extendWidgetBuilder(name) {
         return function extendWidget(initializer, superClassName) {
+            if (typeof initializer !== 'object' || typeof initializer !== 'function') return console.error('Widget definition must be Object or Function');
             var parent = widgets[superClassName];
             if (!parent) return console.error('Base widget [' + superClassName + '] is not defined.');
             if (parent.isFinal) return console.error('Base widget [' + superClassName + '] is being declared as final.');
