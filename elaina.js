@@ -10,7 +10,7 @@
     }
 })(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.0.7';
+    var VERSION = '1.0.8';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -304,19 +304,21 @@
         }
         modPath = modSource + ('/' + idArr.join('/') + '/' + modId + MOD_POSTFIX[modType]).replace('//', '/');
         if (aliasId) modId = aliasId;
+        var shortName = originName.replace(modPrefix + '.', '');
         return {
             id: modId,
             prefix: modPrefix,
             origin: originName,
+            short: shortName,
             key: modType + '$' + originName,
             path: modPath,
         }
     }
 
-    function defineWidgetBuilder(name) {
+    function defineWidgetBuilder(name, shortName) {
         return function defineWidget(initializer) {
             if (typeof initializer === 'object') {
-                initializer = Widget.extend(initializer);
+                initializer = Widget.extend(initializer, shortName);
             }
             if (typeof initializer !== 'function') return console.error('Widget definition must be Object or Function');
             if (widgets[name].useTrait) {
@@ -332,7 +334,7 @@
         }
     }
 
-    function extendWidgetBuilder(name) {
+    function extendWidgetBuilder(name, shortName) {
         return function extendWidget(initializer, superClassName) {
             if (typeof initializer !== 'object' && typeof initializer !== 'function') return console.error('Widget definition must be Object or Function');
             var parent = widgets[superClassName];
@@ -351,7 +353,7 @@
                 });
                 baseWidget = baseWidget.extend(tmpTraits);
             }
-            var childWidget = baseWidget.extend(initializer);
+            var childWidget = baseWidget.extend(initializer, shortName);
             wrapWidget(childWidget);
             widgets[name].initializer = childWidget;
             if (!$.trim(widgets[name].content)) {
@@ -392,8 +394,8 @@
             return loadTrait($script.attr('use-trait'), widgetInfo.prefix);
         }).then(function () {
             widgets[widgetInfo.origin].isFinal = $script.attr('final') !== undefined;
-            appSingleton.defineWidget = defineWidgetBuilder(widgetInfo.origin);
-            appSingleton.extendWidget = extendWidgetBuilder(widgetInfo.origin);
+            appSingleton.defineWidget = defineWidgetBuilder(widgetInfo.origin, widgetInfo.short);
+            appSingleton.extendWidget = extendWidgetBuilder(widgetInfo.origin, widgetInfo.short);
             $(document.body).append($script);
             delete appSingleton.defineWidget;
             delete appSingleton.extendWidget;
@@ -557,17 +559,17 @@
         $el = null;
     }
 
-
-    var initializing = false;
+    var widgetCtx = {initializing: false};
 
     function Widget() {
     }
 
-    Widget.extend = function widgetExtends(props) {
+    Widget.extend = function widgetExtends(props, widgetName) {
+        if (widgetName) widgetName = widgetName[0].toUpperCase() + widgetName.substring(1);
         var _super = this.prototype;
-        initializing = true;
+        widgetCtx.initializing = true;
         var prototype = new this();
-        initializing = false;
+        widgetCtx.initializing = false;
         for (var name in props) {
             if (props.hasOwnProperty(name)) {
                 if (typeof props[name] === "function" && typeof _super[name] === "function" && /\$\bsuper\b/.test(props[name])) {
@@ -585,17 +587,12 @@
                 }
             }
         }
-
-        function Class($elem) {
-            if (!initializing && this.init) {
-                this.init.apply(this, arguments);
-            }
-        }
-
-        Class.prototype = prototype;
-        Class.constructor = Class;
-        Class.extend = widgetExtends;
-        return Class;
+        var createClass = new Function('ctx', 'var c=ctx;return function ' + (widgetName || 'Widget') + ' ($elem){ if(!c.initializing && this.init){this.init.apply(this, arguments);} }');
+        var WidgetClass = createClass(widgetCtx);
+        WidgetClass.prototype = prototype;
+        WidgetClass.constructor = WidgetClass;
+        WidgetClass.extend = widgetExtends;
+        return WidgetClass;
     };
 
     function isWidgetOf(instance, name) {
