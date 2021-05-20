@@ -10,7 +10,7 @@
     }
 })(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.0.8';
+    var VERSION = '1.0.9';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -559,17 +559,20 @@
         $el = null;
     }
 
-    var widgetCtx = {initializing: false};
+    var ClassCtx = {initializing: false};
+
+    function Class() {
+    }
 
     function Widget() {
     }
 
-    Widget.extend = function widgetExtends(props, widgetName) {
-        if (widgetName) widgetName = widgetName[0].toUpperCase() + widgetName.substring(1);
+    Class.extend = function ClassExtends(props, className) {
+        if (className) className = className[0].toUpperCase() + className.substring(1);
         var _super = this.prototype;
-        widgetCtx.initializing = true;
+        ClassCtx.initializing = true;
         var prototype = new this();
-        widgetCtx.initializing = false;
+        ClassCtx.initializing = false;
         for (var name in props) {
             if (props.hasOwnProperty(name)) {
                 if (typeof props[name] === "function" && typeof _super[name] === "function" && /\$\bsuper\b/.test(props[name])) {
@@ -587,13 +590,14 @@
                 }
             }
         }
-        var createClass = new Function('ctx', 'var c=ctx;return function ' + (widgetName || 'Widget') + ' ($elem){ if(!c.initializing && this.init){this.init.apply(this, arguments);} }');
-        var WidgetClass = createClass(widgetCtx);
-        WidgetClass.prototype = prototype;
-        WidgetClass.constructor = WidgetClass;
-        WidgetClass.extend = widgetExtends;
-        return WidgetClass;
-    };
+        var createClass = new Function('ctx', 'var c=ctx;return function ' + (className || 'Class') + ' (){ if(!c.initializing && this.init){this.init.apply(this, arguments);} }');
+        var SubClass = createClass(ClassCtx);
+        SubClass.prototype = prototype;
+        SubClass.constructor = SubClass;
+        SubClass.extend = ClassExtends;
+        return SubClass;
+    }
+    Widget.extend = Class.extend;
 
     function isWidgetOf(instance, name) {
         if (typeof instance === 'object' && widgets[name] && typeof widgets[name].initializer === 'function') {
@@ -701,6 +705,9 @@
         },
         popup: function (name, param) {
             return popup(name, param);
+        },
+        extend: function (subClass, className) {
+            return Class.extend(subClass, className);
         },
         widget: function (el, name, param) {
             return widget(el, name, param);
