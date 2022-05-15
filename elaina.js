@@ -10,7 +10,7 @@
     }
 })(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.0.9';
+    var VERSION = '1.1.0';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
