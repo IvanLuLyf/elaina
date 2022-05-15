@@ -1,6 +1,6 @@
 <div align="center">
 
-[![BunnyPHP](img/logo.png)](https://ivanlulyf.github.io/BunnyPHP)
+[![Elaina](img/logo.png)](https://ivanlulyf.github.io/elaina)
 
 Elaina is a website render.
 
