@@ -10,7 +10,7 @@
     }
 })(this, 'Elaina', function (NAME, $) {
     'use strict';
-    var VERSION = '1.1.0';
+    var VERSION = '1.1.1';
     var MOD_POSTFIX = {
         'widget': '.html',
         'trait': '.js',
@@ -394,6 +394,9 @@
             return loadTrait($script.attr('use-trait'), widgetInfo.prefix);
         }).then(function () {
             widgets[widgetInfo.origin].isFinal = $script.attr('final') !== undefined;
+            if ($script.attr('use-init') !== undefined) {
+                $script.prepend('"use strict";\nElaina.defineWidget(function(){\n').append('\n});');
+            }
             appSingleton.defineWidget = defineWidgetBuilder(widgetInfo.origin, widgetInfo.short);
             appSingleton.extendWidget = extendWidgetBuilder(widgetInfo.origin, widgetInfo.short);
             $(document.body).append($script);
@@ -482,6 +485,11 @@
         return widget($el, name, param);
     }
 
+    function noContext() {
+        console.error('Composition function must be called in init.');
+        return {};
+    }
+
     function widget(el, name, param) {
         var $el = $(el);
         if (typeof name === 'undefined' && typeof param === 'undefined') {
@@ -513,13 +521,31 @@
                 $el.find('slot').replaceWith($origin.contents());
             }
             if (typeof Initializer === 'function') {
+                var onCreatedFunc = [];
+                appSingleton.onCreated = function (func) {
+                    if (typeof func === "function") onCreatedFunc.push(func);
+                };
+                var exposed = {};
+                var $expose = function (ctx) {
+                    $.extend(exposed, ctx);
+                };
+                appSingleton.useContext = function () {
+                    return {$el: $el, $attrs: param, $expose: $expose};
+                };
                 var handler = new Initializer($el, param);
                 handler.$el = $el[0];
                 var widgetKey = '$' + name + ':' + (++widgetIndex);
                 $el.attr('widget', widgetKey);
+                $.each(onCreatedFunc, function (i, func) {
+                    func.apply(handler);
+                });
                 if (typeof handler['created'] === "function") {
                     handler['created']();
                 }
+                appSingleton.onCreated = noContext;
+                appSingleton.useContext = noContext;
+                onCreatedFunc = null;
+                $.extend(handler, exposed);
                 $.each(AT_EVENTS, function (k, evt) {
                     $el.on(evt, '[\\@' + evt + ']', function (e) {
                         var evtInfo = processEvent($(this).attr('@' + evt));
